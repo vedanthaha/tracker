@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
 import { supabase, checkDbReady } from "../lib/supabase";
 import type { Session } from "@supabase/supabase-js";
+import type { LayoutSpec, WorkspaceLayout } from "../lib/design/LayoutSpec";
 
 export type Priority = "high" | "medium" | "low";
 export type TaskCategory = "work" | "personal" | "health" | "focus";
@@ -40,6 +41,7 @@ export interface User {
 interface AppContextType {
   tasks: Task[];
   notes: Note[];
+  layouts: WorkspaceLayout[];
   user: User | null;
   loading: boolean;
   dbReady: boolean;
@@ -64,6 +66,8 @@ interface AppContextType {
   // profile
   updateProfile: (updates: { name?: string; bio?: string }) => Promise<{ error?: string }>;
   uploadAvatar: (file: File) => Promise<{ url?: string; error?: string }>;
+  // layouts
+  saveLayout: (surface: string, spec: LayoutSpec) => Promise<{ error?: string }>;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -100,6 +104,7 @@ function mapNote(row: Record<string, unknown>): Note {
 export function AppProvider({ children }: { children: ReactNode }) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
+  const [layouts, setLayouts] = useState<WorkspaceLayout[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [dbReady, setDbReady] = useState(false);
@@ -107,10 +112,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const loadUserData = useCallback(async (session: Session) => {
     const authUser = session.user;
 
-    const [profileRes, tasksRes, notesRes] = await Promise.all([
+    const [profileRes, tasksRes, notesRes, layoutsRes] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", authUser.id).single(),
       supabase.from("tasks").select("*").eq("user_id", authUser.id).order("created_at", { ascending: true }),
       supabase.from("notes").select("*").eq("user_id", authUser.id).order("created_at", { ascending: false }),
+      supabase.from("workspace_layouts").select("*").eq("user_id", authUser.id),
     ]);
 
     const profile = profileRes.data;
@@ -124,6 +130,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     setTasks(tasksRes.data ? tasksRes.data.map(mapTask) : []);
     setNotes(notesRes.data ? notesRes.data.map(mapNote) : []);
+    setLayouts(layoutsRes.data ? layoutsRes.data as WorkspaceLayout[] : []);
     setLoading(false);
   }, []);
 
@@ -170,6 +177,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setUser(null);
         setTasks([]);
         setNotes([]);
+        setLayouts([]);
         setLoading(false);
       }
     });
@@ -387,14 +395,36 @@ export function AppProvider({ children }: { children: ReactNode }) {
       .then(({ error }) => { if (error) console.error("linkTaskToNote note sync:", error.message); });
   };
 
+  const saveLayout = async (surface: string, spec: LayoutSpec) => {
+    if (!user) return { error: "Not logged in" };
+    const { data, error } = await supabase
+      .from("workspace_layouts")
+      .upsert(
+        { user_id: user.id, surface, layout_spec: spec },
+        { onConflict: "user_id, surface" }
+      )
+      .select()
+      .single();
+
+    if (error) {
+      console.error("saveLayout error:", error.message);
+      return { error: error.message };
+    }
+    setLayouts((prev) => {
+      const filtered = prev.filter((l) => l.surface !== surface);
+      return [...filtered, data as WorkspaceLayout];
+    });
+    return {};
+  };
+
   return (
     <AppContext.Provider value={{
-      tasks, notes, user, loading, dbReady,
+      tasks, notes, layouts, user, loading, dbReady,
       addTask, toggleTask, deleteTask,
       addNote, updateNote, deleteNote,
       createLinked, linkTaskToNote,
       login, signup, signInWithOAuth, verifyOtp, resendOtp, logout,
-      updateProfile, uploadAvatar,
+      updateProfile, uploadAvatar, saveLayout,
     }}>
       {children}
     </AppContext.Provider>

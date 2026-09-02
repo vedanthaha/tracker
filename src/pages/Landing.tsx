@@ -305,7 +305,6 @@ export default function Landing() {
           <div className="w-12 h-12 rounded-lg overflow-hidden flex items-center justify-center">
             <img src="/DailysLogo.png" alt="Dailys" className="w-full h-full object-cover scale-[2.2]" />
           </div>
-          <span className="font-display text-3xl" style={{ color: "var(--foreground)", paddingTop: "4px" }}>Dailys</span>
         </div>
 
         <div className="flex items-center gap-3">
@@ -632,7 +631,6 @@ export default function Landing() {
                 <div className="w-8 h-8 rounded overflow-hidden flex items-center justify-center">
                   <img src="/DailysLogo.png" alt="Dailys" className="w-full h-full object-cover scale-[2.2]" />
                 </div>
-                <span className="font-display text-xl" style={{ color: "var(--foreground)", paddingTop: "2px" }}>Dailys</span>
               </div>
               {["Home", "Tasks", "Notes", "Analytics"].map((item, i) => (
                 <div
@@ -723,7 +721,6 @@ export default function Landing() {
           <div className="w-10 h-10 rounded overflow-hidden flex items-center justify-center">
             <img src="/DailysLogo.png" alt="Dailys" className="w-full h-full object-cover scale-[2.2]" />
           </div>
-          <span className="font-display text-2xl" style={{ color: "var(--muted)", paddingTop: "2px" }}>Dailys</span>
         </div>
         <p className="font-mono-data text-xs" style={{ color: "var(--muted)" }}>
           © 2026 Dailys. All rights reserved.

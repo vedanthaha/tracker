@@ -75,10 +75,10 @@ export default function Profile() {
         {/* Avatar + Name card */}
         <motion.div
           initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.06, duration: 0.3 }}
-          className="rounded-2xl p-8 mb-5"
+          className="rounded-2xl p-6 md:p-8 mb-5"
           style={{ background: "var(--card)", border: "1px solid var(--card-border)" }}
         >
-          <div className="flex items-start gap-7">
+          <div className="flex flex-col md:flex-row items-center md:items-start gap-5 md:gap-7 text-center md:text-left">
             {/* Avatar upload zone */}
             <div
               className="relative flex-shrink-0 cursor-pointer group"
@@ -141,10 +141,10 @@ export default function Profile() {
             </div>
 
             {/* Name + email info */}
-            <div className="flex-1 min-w-0 pt-1">
+            <div className="flex-1 min-w-0 pt-1 w-full">
               <p className="font-display text-2xl mb-0.5 truncate" style={{ color: "var(--foreground)" }}>{user?.name || "—"}</p>
               <p className="text-sm mb-4" style={{ color: "var(--muted)" }}>{user?.email}</p>
-              <div className="flex gap-5">
+              <div className="flex justify-center md:justify-start gap-4 md:gap-5 w-full">
                 {[
                   ["Tasks", tasks.length],
                   ["Done", completedTasks],
@@ -176,7 +176,7 @@ export default function Profile() {
         <motion.form
           initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12, duration: 0.3 }}
           onSubmit={handleSave}
-          className="rounded-2xl p-8 mb-5"
+          className="rounded-2xl p-6 md:p-8 mb-5"
           style={{ background: "var(--card)", border: "1px solid var(--card-border)" }}
         >
           <h2 className="font-display text-lg mb-6" style={{ color: "var(--foreground)" }}>Personal Info</h2>
@@ -264,7 +264,7 @@ export default function Profile() {
         {/* Danger zone */}
         <motion.div
           initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18, duration: 0.3 }}
-          className="rounded-2xl p-8"
+          className="rounded-2xl p-6 md:p-8 mb-6"
           style={{ background: "var(--card)", border: "1px solid var(--card-border)" }}
         >
           <h2 className="font-display text-lg mb-2" style={{ color: "var(--foreground)" }}>Session</h2>

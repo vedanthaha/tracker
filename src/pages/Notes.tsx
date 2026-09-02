@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApp, type NoteCategory } from "../context/AppContext";
 
@@ -63,13 +63,67 @@ export default function Notes() {
     return d.toLocaleDateString("en", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
   };
 
+  // Resizable pane logic
+  const MIN_WIDTH = 260;
+  const MAX_WIDTH = 500;
+  const DEFAULT_WIDTH = 330;
+
+  const [leftWidth, setLeftWidth] = useState(() => {
+    const saved = localStorage.getItem("dailys-notes-pane-width");
+    return saved ? Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, parseInt(saved, 10))) : DEFAULT_WIDTH;
+  });
+  const [isDragging, setIsDragging] = useState(false);
+
+  const startDrag = useCallback((e: React.PointerEvent) => {
+    e.preventDefault(); // Prevent text selection
+    setIsDragging(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const onPointerMove = (e: PointerEvent) => {
+      // e.clientX gives us the width since the left panel starts at x=0 (relative to window)
+      // Actually we should measure relative to the container if we want, but clientX is close enough for a full-screen app.
+      // Better: we can calculate based on the bounding rect of the main container, but clientX works flawlessly for a sidebar docked to the left.
+      let newWidth = e.clientX;
+      if (newWidth < MIN_WIDTH) newWidth = MIN_WIDTH;
+      if (newWidth > MAX_WIDTH) newWidth = MAX_WIDTH;
+      setLeftWidth(newWidth);
+    };
+
+    const onPointerUp = (e: PointerEvent) => {
+      setIsDragging(false);
+      let newWidth = e.clientX;
+      if (newWidth < MIN_WIDTH) newWidth = MIN_WIDTH;
+      if (newWidth > MAX_WIDTH) newWidth = MAX_WIDTH;
+      localStorage.setItem("dailys-notes-pane-width", newWidth.toString());
+    };
+
+    document.addEventListener("pointermove", onPointerMove);
+    document.addEventListener("pointerup", onPointerUp);
+    // Add a class to body to prevent accidental selection/cursor flickering while dragging
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+
+    return () => {
+      document.removeEventListener("pointermove", onPointerMove);
+      document.removeEventListener("pointerup", onPointerUp);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    };
+  }, [isDragging]);
+
   return (
-    <div className="flex h-full" style={{ color: "var(--foreground)" }}>
+    <div 
+      className="flex flex-col md:flex-row h-full" 
+      style={{ color: "var(--foreground)", "--left-width": `${leftWidth}px` } as React.CSSProperties}
+    >
 
       {/* Left panel — notes list */}
       <div
-        className="flex flex-col flex-shrink-0"
-        style={{ width: "280px", borderRight: "1px solid var(--card-border)", background: "var(--card)" }}
+        className="flex flex-col flex-shrink-0 w-full md:w-[var(--left-width)] h-1/3 md:h-full border-b md:border-b-0"
+        style={{ borderColor: "var(--card-border)", background: "var(--card)" }}
       >
         {/* Header */}
         <motion.div
@@ -111,7 +165,7 @@ export default function Notes() {
         {/* Category filter */}
         <motion.div
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.05, duration: 0.22 }}
-          className="flex items-center gap-1 px-3 py-2.5"
+          className="flex flex-wrap items-center gap-1 px-3 py-2.5"
           style={{ borderBottom: "1px solid var(--card-border)" }}
         >
           {(["all", ...CATEGORY_OPTIONS] as const).map((cat) => (
@@ -193,6 +247,22 @@ export default function Notes() {
         </div>
       </div>
 
+      {/* Draggable Divider */}
+      <div
+        className="hidden md:flex w-1.5 cursor-col-resize transition-colors z-10 flex-shrink-0"
+        onPointerDown={startDrag}
+        style={{ 
+          borderRight: "1px solid var(--card-border)",
+          background: isDragging ? "rgba(240,237,232,0.1)" : "transparent",
+        }}
+        onMouseEnter={(e) => {
+          if (!isDragging) e.currentTarget.style.background = "rgba(240,237,232,0.06)";
+        }}
+        onMouseLeave={(e) => {
+          if (!isDragging) e.currentTarget.style.background = "transparent";
+        }}
+      />
+
       {/* Right panel — editor */}
       <AnimatePresence mode="wait" initial={false}>
         {selectedNote ? (
@@ -206,7 +276,7 @@ export default function Notes() {
           >
             {/* Editor toolbar */}
             <div
-              className="flex items-center gap-3 px-6 py-4 flex-shrink-0"
+              className="flex items-center gap-2 md:gap-3 px-4 md:px-6 py-3 md:py-4 flex-shrink-0 flex-wrap"
               style={{ borderBottom: "1px solid var(--card-border)", background: "rgba(240,237,232,0.015)" }}
             >
               <select
@@ -276,9 +346,9 @@ export default function Notes() {
             </div>
 
             {/* Editor body */}
-            <div className="flex-1 overflow-y-auto px-12 py-8">
+            <div className="flex-1 overflow-y-auto px-6 md:px-12 py-6 md:py-8">
               <input
-                className="w-full font-display text-4xl bg-transparent border-none outline-none mb-4 leading-tight"
+                className="w-full font-display text-3xl md:text-4xl bg-transparent border-none outline-none mb-4 leading-tight"
                 style={{ color: "var(--foreground)", fontFamily: "Instrument Serif, serif" }}
                 placeholder="Title"
                 value={selectedNote.title}

@@ -57,7 +57,7 @@ function Card({ title, children, className = "", delay = 0 }: { title: string; c
   );
 }
 
-function DonutChart({ data }: { name: string; value: number; color: string }[]) {
+function DonutChart({ data }: { data: { name: string; value: number; color: string }[] }) {
   const isEmpty = data.every((d) => d.value === 0);
   if (isEmpty) {
     return (
@@ -73,7 +73,7 @@ function DonutChart({ data }: { name: string; value: number; color: string }[]) 
       <div style={{ height: "160px" }}>
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
-            <Pie data={data} cx="50%" cy="50%" innerRadius={46} outerRadius={68} paddingAngle={3} dataKey="value" strokeWidth={0}>
+            <Pie data={data as any[]} cx="50%" cy="50%" innerRadius={46} outerRadius={68} paddingAngle={3} dataKey="value" strokeWidth={0}>
               {data.map((d) => <Cell key={d.name} fill={d.color} opacity={0.85} />)}
             </Pie>
             <Tooltip {...TT} formatter={(v) => [`${v}%`, ""]} />
@@ -126,7 +126,7 @@ export default function Analytics() {
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="px-8 py-8 max-w-5xl mx-auto">
+      <div className="px-4 md:px-8 py-6 md:py-8 max-w-5xl mx-auto">
 
         {/* Header */}
         <motion.div
@@ -138,7 +138,7 @@ export default function Analytics() {
         </motion.div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 md:grid-cols-6 gap-4 mb-6">
+        <div className="grid grid-cols-2 lg:grid-cols-6 gap-3 md:gap-4 mb-6">
           {statsRow.map((s, i) => (
             <motion.div
               key={s.label}
@@ -159,7 +159,7 @@ export default function Analytics() {
         <Card title="30-Day Productivity — Tasks Completed" className="mb-5" delay={0.36}>
           <div style={{ height: "220px" }}>
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={thirtyDays} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
+              <AreaChart data={thirtyDays as any[]} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
                 <defs>
                   <linearGradient id="completedGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="#d4a853" stopOpacity={0.3} />
@@ -190,11 +190,11 @@ export default function Analytics() {
         </Card>
 
         {/* Row: stacked bar + radial */}
-        <div className="grid gap-5 mb-5" style={{ gridTemplateColumns: "1fr 1fr" }}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
           <Card title="Tasks by Category — This Week" delay={0.42}>
             <div style={{ height: "200px" }}>
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={weekData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }} barSize={10}>
+                <BarChart data={weekData as any[]} margin={{ top: 5, right: 5, left: -25, bottom: 0 }} barSize={10}>
                   <CartesianGrid stroke="rgba(240,237,232,0.04)" strokeDasharray="4 4" vertical={false} />
                   <XAxis dataKey="day" tick={TICK} axisLine={false} tickLine={false} />
                   <YAxis tick={TICK} axisLine={false} tickLine={false} />
@@ -219,7 +219,7 @@ export default function Analytics() {
           <Card title="Weekly Goals Progress" delay={0.46}>
             <div style={{ height: "200px" }}>
               <ResponsiveContainer width="100%" height="100%">
-                <RadialBarChart cx="50%" cy="50%" innerRadius="20%" outerRadius="90%" data={GOALS} startAngle={90} endAngle={-270}>
+                <RadialBarChart cx="50%" cy="50%" innerRadius="20%" outerRadius="90%" data={GOALS as any[]} startAngle={90} endAngle={-270}>
                   <RadialBar dataKey="value" cornerRadius={4} background={{ fill: "rgba(240,237,232,0.04)" }} />
                   <Tooltip {...TT} formatter={(v) => [`${v}%`, "Progress"]} />
                 </RadialBarChart>
@@ -238,7 +238,7 @@ export default function Analytics() {
         </div>
 
         {/* Three pie charts */}
-        <div className="grid grid-cols-3 gap-5 mb-5">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
           <Card title="Task Distribution" delay={0.5}>
             <DonutChart data={taskDist} />
           </Card>
@@ -254,7 +254,7 @@ export default function Analytics() {
         <Card title="Daily Tasks Completed — 30 Days" className="mb-5" delay={0.62}>
           <div style={{ height: "180px" }}>
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={thirtyDays} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
+              <LineChart data={thirtyDays as any[]} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
                 <CartesianGrid stroke="rgba(240,237,232,0.04)" strokeDasharray="4 4" vertical={false} />
                 <XAxis dataKey="date" tick={TICK} axisLine={false} tickLine={false} interval={4} />
                 <YAxis tick={TICK} axisLine={false} tickLine={false} allowDecimals={false} />
@@ -263,15 +263,15 @@ export default function Analytics() {
               </LineChart>
             </ResponsiveContainer>
           </div>
-          <div className="flex items-center gap-6 mt-3">
+          <div className="flex flex-wrap items-center gap-4 md:gap-6 mt-3">
             {[
               { label: "Average", value: `${avgFocus}`, color: "#b48ee8" },
               { label: "Best day", value: `${Math.max(...thirtyDays.map((d) => d.completed), 0)}`, color: "var(--green)" },
               { label: "This week", value: `${thirtyDays.slice(-7).reduce((s, d) => s + d.completed, 0)}`, color: "var(--accent)" },
             ].map((s) => (
               <div key={s.label}>
-                <p className="font-mono-data text-xs" style={{ color: "var(--muted)" }}>{s.label}</p>
-                <p className="font-display text-lg" style={{ color: s.color }}>{s.value}</p>
+                <p className="font-mono-data text-[10px] md:text-xs" style={{ color: "var(--muted)" }}>{s.label}</p>
+                <p className="font-display text-base md:text-lg" style={{ color: s.color }}>{s.value}</p>
               </div>
             ))}
           </div>
@@ -301,7 +301,7 @@ export default function Analytics() {
               ))}
             </div>
           </div>
-          <div className="flex items-center gap-2 mt-4">
+          <div className="flex items-center gap-2 mt-4 flex-wrap">
             <span className="font-mono-data text-xs" style={{ color: "var(--muted)" }}>Less</span>
             {[0.05, 0.2, 0.4, 0.65, 1].map((o) => (
               <div key={o} className="w-3 h-3 rounded-sm" style={{ background: `rgba(212,168,83,${o})` }} />

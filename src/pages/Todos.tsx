@@ -294,7 +294,7 @@ export default function Todos() {
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="px-8 py-8 max-w-4xl mx-auto">
+      <div className="px-4 md:px-8 py-6 md:py-8 max-w-4xl mx-auto">
 
         <AnimatePresence>
           {showModal && <NewItemModal onClose={() => setShowModal(false)} />}
@@ -303,7 +303,7 @@ export default function Todos() {
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, ease: "easeOut" }}
-          className="flex items-end justify-between mb-6"
+          className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6"
         >
           <div>
             <p className="font-mono-data text-xs tracking-widest uppercase mb-1" style={{ color: "var(--muted)" }}>Task Manager</p>
@@ -323,7 +323,7 @@ export default function Todos() {
         </motion.div>
 
         {/* Stats row */}
-        <div className="grid grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
           {[
             { label: "Total", value: total, color: "var(--foreground)" },
             { label: "Done", value: completed, color: "var(--green)" },
@@ -335,11 +335,11 @@ export default function Todos() {
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.07, duration: 0.28, ease: "easeOut" }}
-              className="p-4 rounded-xl"
+              className="p-4 rounded-xl flex flex-col justify-between"
               style={{ background: "var(--card)", border: "1px solid var(--card-border)" }}
             >
-              <p className="font-mono-data text-xs tracking-widest uppercase mb-1.5" style={{ color: "var(--muted)" }}>{s.label}</p>
-              <p className="font-display text-3xl" style={{ color: s.color }}>{s.value}</p>
+              <p className="font-mono-data text-[10px] md:text-xs tracking-widest uppercase mb-1.5" style={{ color: "var(--muted)" }}>{s.label}</p>
+              <p className="font-display text-2xl md:text-3xl" style={{ color: s.color }}>{s.value}</p>
             </motion.div>
           ))}
         </div>
