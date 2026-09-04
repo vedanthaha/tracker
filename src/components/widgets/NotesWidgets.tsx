@@ -11,6 +11,9 @@ const CAT_COLORS: Record<NoteCategory, string> = {
 
 const CATEGORY_OPTIONS: NoteCategory[] = ["work", "personal", "ideas", "journal"];
 
+/**
+ * Displays a searchable, category-filtered list of notes with selection and creation controls.
+ */
 export function NotesSidebarWidget() {
   const { notes } = useApp();
   const {
@@ -149,6 +152,9 @@ export function NotesSidebarWidget() {
   );
 }
 
+/**
+ * Displays the selected note in an editor with controls for categorization, pinning, deletion, and content editing.
+ */
 export function NotesEditorWidget() {
   const { notes, updateNote, deleteNote } = useApp();
   const {

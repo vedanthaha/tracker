@@ -1,6 +1,15 @@
 import { useMemo } from "react";
 import { MetricLead, MetricActivity } from "../hooks/useMetricLeads";
 
+/**
+ * Displays lead, call, conversion, pipeline, and seven-day outreach analytics.
+ *
+ * @param leads - Lead records used to calculate pipeline and conversion metrics
+ * @param activities - Outreach activities used to build the seven-day activity chart
+ * @param totalCalls - Total number of calls
+ * @param connectedCalls - Number of calls that connected with a lead
+ * @returns The rendered analytics dashboard
+ */
 export function MetricAnalytics({ leads, activities, totalCalls, connectedCalls }: { leads: MetricLead[], activities: MetricActivity[], totalCalls: number, connectedCalls: number }) {
   const metrics = useMemo(() => {
     const totalLeads = leads.length;

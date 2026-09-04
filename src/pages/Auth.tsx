@@ -4,6 +4,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useApp } from "../context/AppContext";
 import { getStrength, validatePassword, requirements } from "../lib/passwordStrength";
 
+/**
+ * Renders the login, signup, and email verification interfaces.
+ *
+ * Redirects authenticated users to the dashboard and supports Google OAuth, password authentication, OTP verification, and OTP resending.
+ *
+ * @returns The authentication page interface.
+ */
 export default function Auth() {
   const location = useLocation();
   const isSignup = location.pathname === "/signup";

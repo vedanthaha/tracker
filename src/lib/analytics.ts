@@ -1,6 +1,11 @@
-﻿import type { Task, Note, TaskCategory, NoteCategory } from "../context/AppContext";
+import type { Task, Note, TaskCategory, NoteCategory } from "../context/AppContext";
 
-// -- date helpers ------------------------------------------------
+/**
+ * Converts a date to its UTC calendar-date key in `YYYY-MM-DD` format.
+ *
+ * @param d - The date to convert
+ * @returns The date formatted as a UTC `YYYY-MM-DD` key
+ */
 function toDateKey(d: Date): string {
   return d.toISOString().slice(0, 10); // YYYY-MM-DD UTC
 }
@@ -10,6 +15,12 @@ function toDisplayDate(key: string): string {
   return d.toLocaleDateString("en", { month: "short", day: "numeric", timeZone: "UTC" });
 }
 
+/**
+ * Extracts a UTC calendar date key from an ISO timestamp.
+ *
+ * @param iso - The ISO timestamp, or `null` or `undefined` when unavailable
+ * @returns The date in `YYYY-MM-DD` format, or `null` when no timestamp is provided
+ */
 function dayKeyFromISO(iso: string | null | undefined): string | null {
   if (!iso) return null;
   return new Date(iso).toISOString().slice(0, 10);
@@ -90,12 +101,23 @@ export function getWeekData(tasks: Task[]): WeekRow[] {
 
 export interface MiniRow { day: string; tasks: number }
 
+/**
+ * Builds daily task totals for the current Monday–Sunday week.
+ *
+ * @param tasks - The tasks to include in the daily totals
+ * @returns Rows containing each weekday and its total task count
+ */
 export function getMiniChartData(tasks: Task[]): MiniRow[] {
   const week = getWeekData(tasks);
   return week.map((r) => ({ day: r.day, tasks: r.work + r.focus + r.personal + r.health }));
 }
 
-// -- distributions ---------------------------------------------
+/**
+ * Calculates the percentage distribution of tasks across categories.
+ *
+ * @param tasks - The tasks to categorize
+ * @returns Category entries with rounded percentages and associated display colors
+ */
 export function getTaskDistribution(tasks: Task[]): { name: string; value: number; color: string }[] {
   const total = tasks.length;
   if (total === 0) return [
@@ -132,6 +154,12 @@ export function getNoteDistribution(notes: Note[]): { name: string; value: numbe
   ];
 }
 
+/**
+ * Calculates the percentage distribution of tasks by priority.
+ *
+ * @param tasks - The tasks to classify by priority
+ * @returns Priority entries for High, Medium, and Low with rounded percentage values and display colors
+ */
 export function getPriorityDistribution(tasks: Task[]): { name: string; value: number; color: string }[] {
   const total = tasks.length;
   if (total === 0) return [
@@ -148,7 +176,12 @@ export function getPriorityDistribution(tasks: Task[]): { name: string; value: n
   ];
 }
 
-// -- streak -----------------------------------------------------
+/**
+ * Calculates the current consecutive-day activity streak from task activity.
+ *
+ * @param tasks - Tasks whose creation and completion dates contribute activity days
+ * @returns The number of consecutive active days ending today or the most recent active day
+ */
 export function computeStreak(tasks: Task[]): number {
   if (tasks.length === 0) return 0;
   const activeDays = new Set<string>();
@@ -180,7 +213,12 @@ export function computeStreak(tasks: Task[]): number {
   return streak;
 }
 
-// -- heatmap ----------------------------------------------------
+/**
+ * Generates daily task activity data for the previous 84 days.
+ *
+ * @param tasks - The tasks used to count creation and completion activity.
+ * @returns An array of daily activity records with date keys, task counts, and activity levels from 0 to 4.
+ */
 export function getHeatmap(tasks: Task[]): { date: string; count: number; level: number }[] {
   const map = new Map<string, number>();
   for (const t of tasks) {

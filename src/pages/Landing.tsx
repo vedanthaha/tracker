@@ -5,7 +5,11 @@ import { useApp } from "../context/AppContext";
 import BackgroundPixelStars from "../components/BackgroundPixelStars";
 import DotMatrixText from "../components/DotMatrixText";
 
-// -- Bento mini-components --------------------------------------------------
+/**
+ * Displays an animated task list that progressively marks tasks as complete and then resets.
+ *
+ * @returns The rendered task list demonstration.
+ */
 
 function TasksDemo() {
   const items = [
@@ -74,6 +78,9 @@ function TasksDemo() {
   );
 }
 
+/**
+ * Displays a journal entry with simulated typing and a blinking cursor.
+ */
 function NotesDemo() {
   const full = "Clear head today. The work ahead feels manageable - focus on the newsletter draft first.";
   const [len, setLen] = useState(0);
@@ -113,6 +120,9 @@ function NotesDemo() {
   );
 }
 
+/**
+ * Renders an interactive knowledge graph that highlights hovered nodes and their connections.
+ */
 function GraphDemo() {
   const nodes = [
     { x: 50, y: 48, r: 9, c: "#d4a853" },
@@ -156,6 +166,9 @@ function GraphDemo() {
   );
 }
 
+/**
+ * Displays an animated seven-day activity bar chart.
+ */
 function AnalyticsDemo() {
   const bars = [
     { h: 60, label: "M", c: "#d4a853" }, { h: 85, label: "T", c: "#d4a853" },
@@ -183,6 +196,9 @@ function AnalyticsDemo() {
   );
 }
 
+/**
+ * Displays an animated 25-minute focus session with a countdown timer and progress ring.
+ */
 function FocusDemo() {
   const total = 25 * 60;
   const [sec, setSec] = useState(total - 180);
@@ -231,6 +247,9 @@ function FocusDemo() {
   );
 }
 
+/**
+ * Displays category counts with an animated indicator that cycles through the categories.
+ */
 function CategoriesDemo() {
   const cats = [
     { label: "Work", color: "color-mix(in srgb, var(--foreground) 85%, transparent)", count: 8 },
@@ -281,6 +300,9 @@ const STATS = [
   { value: "< 1s", label: "Page load time" },
 ];
 
+/**
+ * Renders the Dailys marketing landing page and redirects authenticated users to the dashboard.
+ */
 export default function Landing() {
   const navigate = useNavigate();
   const { user, loading } = useApp();

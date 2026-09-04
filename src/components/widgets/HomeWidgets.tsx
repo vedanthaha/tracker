@@ -21,6 +21,9 @@ const PRIORITY_COLORS: Record<string, string> = {
   low: "color-mix(in srgb, var(--foreground) 20%, transparent)",
 };
 
+/**
+ * Displays the current date, a personalized greeting, the user's task progress, and a link to all tasks.
+ */
 export function HeaderWidget() {
   const { tasks, user } = useApp();
   const now = new Date();
@@ -61,6 +64,9 @@ export function HeaderWidget() {
   );
 }
 
+/**
+ * Displays task completion, open high-priority tasks, note count, and task streak statistics.
+ */
 export function StatsRowWidget() {
   const { tasks, notes } = useApp();
   const completed = tasks.filter((t) => t.completed).length;
@@ -98,6 +104,14 @@ export function StatsRowWidget() {
   );
 }
 
+/**
+ * Renders a tooltip showing the task count for a chart data point.
+ *
+ * @param active - Whether the tooltip is active.
+ * @param payload - Chart data associated with the tooltip.
+ * @param label - Label for the chart data point.
+ * @returns The tooltip element, or `null` when no active data is available.
+ */
 function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   return (
@@ -111,6 +125,9 @@ function CustomTooltip({ active, payload, label }: any) {
   );
 }
 
+/**
+ * Displays weekly task output with a comparison to the previous week.
+ */
 export function WeeklyChartWidget() {
   const { tasks } = useApp();
   const miniData = useMemo(() => getMiniChartData(tasks), [tasks]);
@@ -169,6 +186,9 @@ export function WeeklyChartWidget() {
   );
 }
 
+/**
+ * Displays the next incomplete tasks and provides navigation to the full task list.
+ */
 export function UpcomingTasksWidget() {
   const { tasks } = useApp();
   const upcomingTasks = tasks.filter((t) => !t.completed).slice(0, 4);
@@ -208,6 +228,11 @@ export function UpcomingTasksWidget() {
   );
 }
 
+/**
+ * Displays the first open high-priority task as today's focus.
+ *
+ * Shows a fallback message when no high-priority tasks remain and includes the count of open high-priority tasks.
+ */
 export function FocusWidget() {
   const { tasks } = useApp();
   const high = tasks.filter((t) => t.priority === "high" && !t.completed).length;
@@ -227,6 +252,9 @@ export function FocusWidget() {
   );
 }
 
+/**
+ * Displays up to three recent notes with titles, pinned indicators, content previews, and a link to all notes.
+ */
 export function RecentNotesWidget() {
   const { notes } = useApp();
   const recentNotes = notes.slice(0, 3);
@@ -288,6 +316,9 @@ export function RecentNotesWidget() {
   );
 }
 
+/**
+ * Displays task completion progress for each supported category.
+ */
 export function CategoryBreakdownWidget() {
   const { tasks } = useApp();
 

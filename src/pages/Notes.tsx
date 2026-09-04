@@ -3,6 +3,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useApp, type NoteCategory } from "../context/AppContext";
 import NotesEditor from "../components/NotesEditor";
 
+/**
+ * Extracts plain text from a string or structured editor content.
+ *
+ * @param node - A text string or structured content node to process
+ * @returns The extracted text, with newline characters after paragraphs and headings
+ */
 function extractTextFromJSON(node: any): string {
   if (typeof node === 'string') {
     if (node.startsWith('{')) {
@@ -35,6 +41,9 @@ const CAT_COLORS: Record<NoteCategory, string> = {
 
 const CATEGORY_OPTIONS: NoteCategory[] = ["work", "personal", "ideas", "journal"];
 
+/**
+ * Displays a responsive notes list and editor with search, category filtering, pinning, deletion, and resizable pane support.
+ */
 export default function Notes() {
   const { notes, addNote, updateNote, deleteNote } = useApp();
   const [selectedId, setSelectedId] = useState<number | null>(notes[0]?.id ?? null);

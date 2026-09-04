@@ -86,6 +86,9 @@ const NAV_ITEMS = [
   },
 ];
 
+/**
+ * Provides the authenticated application layout with navigation, user controls, database setup guidance, and routed content.
+ */
 export default function AppLayout() {
   const { user, logout, tasks, notes, loading, dbReady } = useApp();
   const navigate = useNavigate();

@@ -2,6 +2,13 @@ import { NodeViewWrapper, NodeViewContent } from '@tiptap/react';
 import { Copy, Check } from 'lucide-react';
 import { useState } from 'react';
 
+/**
+ * Renders an editable code block with language selection and clipboard copying.
+ *
+ * @param node - The code block node and its current attributes.
+ * @param updateAttributes - Updates attributes on the code block node.
+ * @returns The rendered code block node view.
+ */
 export default function CodeBlockComponent({ node, updateAttributes, extension }: any) {
   const [copied, setCopied] = useState(false);
 

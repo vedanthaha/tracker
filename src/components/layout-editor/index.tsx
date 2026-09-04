@@ -27,6 +27,11 @@ interface LayoutEditorProps {
   children?: React.ReactNode;
 }
 
+/**
+ * Renders a layout editor with isolated editing state.
+ *
+ * @returns The layout editor interface.
+ */
 export function LayoutEditor(props: LayoutEditorProps) {
   // Wrap with provider to ensure state doesn't leak across different pages/surfaces
   return (
@@ -36,6 +41,13 @@ export function LayoutEditor(props: LayoutEditorProps) {
   );
 }
 
+/**
+ * Renders the layout in view mode or provides an interactive editor with drag-and-drop placement controls.
+ *
+ * @param spec - The layout specification to render and edit.
+ * @param defaultSpec - The default layout specification used by the editor toolbar.
+ * @param onSave - Callback invoked when the edited layout is saved.
+ */
 function LayoutEditorInner({ spec, defaultSpec, onSave }: LayoutEditorProps) {
   const { isEditing, spec: editedSpec, startEditing, placeNode, dragPreviewPlacement, setDragPreviewPlacement } = useLayoutEditor();
   const [activeId, setActiveId] = useState<string | null>(null);

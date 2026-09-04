@@ -1,4 +1,4 @@
-﻿import { createContext, useContext, useState, useRef, ReactNode, useEffect } from "react";
+import { createContext, useContext, useState, useRef, ReactNode, useEffect } from "react";
 import { NoteCategory, useApp } from "./AppContext";
 
 interface NotesContextType {
@@ -20,6 +20,11 @@ interface NotesContextType {
 
 const NotesContext = createContext<NotesContextType | null>(null);
 
+/**
+ * Provides note state, derived data, and note operations to descendant components.
+ *
+ * @param children - The components that consume the note context
+ */
 export function NotesProvider({ children }: { children: ReactNode }) {
   const { notes, addNote, updateNote, deleteNote } = useApp();
   const [selectedId, setSelectedId] = useState<number | null>(notes[0]?.id ?? null);
@@ -94,6 +99,12 @@ export function NotesProvider({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * Provides access to the notes context.
+ *
+ * @returns The current notes context value
+ * @throws An error if used outside `NotesProvider`
+ */
 export function useNotesContext() {
   const ctx = useContext(NotesContext);
   if (!ctx) throw new Error("useNotesContext must be used within NotesProvider");

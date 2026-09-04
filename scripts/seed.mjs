@@ -12,6 +12,12 @@ if (!GEMINI_KEY || !SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
+/**
+ * Generates a 1,536-dimensional document embedding for the supplied text.
+ * @param {string} text - The text to embed.
+ * @return {number[]} The embedding values.
+ * @throws {Error} If the Gemini API request fails.
+ */
 async function generateEmbedding(text) {
   const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-2:embedContent?key=${GEMINI_KEY}`, {
     method: "POST",
@@ -34,6 +40,11 @@ async function generateEmbedding(text) {
   return data.embedding.values;
 }
 
+/**
+ * Seeds the design knowledge table with embeddings for each corpus entry.
+ *
+ * Processes entries independently and continues after individual failures.
+ */
 async function seed() {
   console.log(`Starting seed process for ${designCorpus.length} design knowledge entries using Gemini Embeddings...`);
   let successCount = 0;

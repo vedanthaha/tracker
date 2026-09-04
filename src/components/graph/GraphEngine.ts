@@ -1,6 +1,13 @@
 import * as d3 from "d3";
 import { ThemeDefinition } from "../../lib/theme/types";
 
+/**
+ * Converts a three- or six-digit hexadecimal color to an RGBA color string.
+ *
+ * @param hex - The hexadecimal color value, with or without a leading `#`
+ * @param alpha - The alpha channel value
+ * @returns An RGBA color string, or gray with the specified alpha for invalid color lengths
+ */
 function hexToRgba(hex: string, alpha: number): string {
   let c = hex.replace('#', '');
   if (c.length === 3) c = c.split('').map(x => x + x).join('');

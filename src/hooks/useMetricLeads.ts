@@ -59,6 +59,11 @@ export interface MetricPitch {
   updated_at: string;
 }
 
+/**
+ * Manages authenticated metric leads, pitches, activities, and call analytics.
+ *
+ * @returns The current metric data, loading and error state, CRUD operations, activity retrieval methods, and a function to refresh the data.
+ */
 export function useMetricLeads() {
   const { user } = useApp();
   const [leads, setLeads] = useState<MetricLead[]>([]);

@@ -1,8 +1,11 @@
-﻿import { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useLayoutEditor } from "./LayoutEditorContext";
 import { WidgetRegistry } from "../../lib/design/ComponentManifest";
 import { findNode } from "./layoutOperations";
 
+/**
+ * Renders a floating menu for adding widgets to the layout during editing.
+ */
 export function WidgetPicker() {
   const { isEditing, spec, addNode } = useLayoutEditor();
   const [isOpen, setIsOpen] = useState(false);

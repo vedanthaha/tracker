@@ -4,6 +4,9 @@ import { AppProvider } from "./context/AppContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import { ClockProvider } from "./context/ClockContext";
 
+/**
+ * Renders the application with its state, theme, clock, and routing providers.
+ */
 export default function App() {
   return (
     <AppProvider>

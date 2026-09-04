@@ -14,6 +14,9 @@ const CAT_COLORS: Record<string, string> = {
   journal: "#a0d0c0",
 };
 
+/**
+ * Renders an interactive graph of application tasks and notes with selectable nodes and detail navigation.
+ */
 export default function Graph() {
   const { tasks, notes } = useApp();
   const { theme } = useTheme();

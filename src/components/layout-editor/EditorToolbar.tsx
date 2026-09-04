@@ -1,4 +1,4 @@
-﻿import { useLayoutEditor } from "./LayoutEditorContext";
+import { useLayoutEditor } from "./LayoutEditorContext";
 import { LayoutSpec } from "../../lib/design/LayoutSpec";
 
 interface EditorToolbarProps {
@@ -6,6 +6,12 @@ interface EditorToolbarProps {
   defaultSpec: LayoutSpec;
 }
 
+/**
+ * Renders controls for undoing, redoing, resetting, discarding, and saving layout edits.
+ *
+ * @param onSave - Callback invoked with the finalized layout specification
+ * @param defaultSpec - Layout specification restored when the user confirms a reset
+ */
 export function EditorToolbar({ onSave, defaultSpec }: EditorToolbarProps) {
   const { 
     isEditing, 

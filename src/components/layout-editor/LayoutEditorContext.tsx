@@ -41,6 +41,11 @@ interface LayoutEditorContextType extends LayoutEditorState {
 
 const LayoutEditorContext = createContext<LayoutEditorContextType | null>(null);
 
+/**
+ * Provides layout editing state and operations to descendant components through React context.
+ *
+ * @param children - Components that access the layout editor context
+ */
 export function LayoutEditorProvider({ children }: { children: ReactNode }) {
   const [isEditing, setIsEditing] = useState(false);
   const [spec, setSpec] = useState<LayoutSpec | null>(null);
@@ -211,6 +216,12 @@ export function LayoutEditorProvider({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * Provides access to the layout editor context.
+ *
+ * @returns The current layout editor context
+ * @throws If called outside a `LayoutEditorProvider`
+ */
 export function useLayoutEditor() {
   const ctx = useContext(LayoutEditorContext);
   if (!ctx) throw new Error("useLayoutEditor must be used within LayoutEditorProvider");

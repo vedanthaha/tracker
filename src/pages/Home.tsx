@@ -42,6 +42,11 @@ const DEFAULT_HOME_LAYOUT: LayoutSpec = {
   }
 };
 
+/**
+ * Renders the home surface using the configured layout or the default layout.
+ *
+ * @returns The rendered home surface
+ */
 export default function Home() {
   const { layouts } = useApp();
   

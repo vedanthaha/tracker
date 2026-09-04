@@ -8,6 +8,12 @@ directories = [
 ]
 
 def replace_colors_in_file(filepath):
+    """
+    Replace selected hard-coded colors in a TypeScript or TSX file with theme-aware CSS colors.
+    
+    Parameters:
+        filepath: Path to the file whose colors should be replaced. The file is updated only when changes are made.
+    """
     with open(filepath, 'r', encoding='utf-8') as f:
         content = f.read()
         
@@ -15,6 +21,15 @@ def replace_colors_in_file(filepath):
     
     # 1. Replace rgba(240,237,232, 0.XX) with color-mix
     def repl_rgba(match):
+        """
+        Convert a matched RGBA opacity to a foreground color-mix expression.
+        
+        Parameters:
+            match: A regular expression match containing the opacity as its first capture group.
+        
+        Returns:
+            str: A CSS color-mix expression using the captured opacity percentage.
+        """
         opacity_str = match.group(1)
         opacity = float(opacity_str)
         percent = int(opacity * 100)
@@ -24,6 +39,15 @@ def replace_colors_in_file(filepath):
     
     # 2. Replace rgba(0,0,0, 0.XX) with color-mix
     def repl_rgba_black(match):
+        """
+        Convert a matched black RGBA opacity to a background color-mix expression.
+        
+        Parameters:
+        	match (Match): A match containing the opacity value in its first capture group.
+        
+        Returns:
+        	str: A `color-mix` expression using the background color and the matched opacity.
+        """
         opacity_str = match.group(1)
         opacity = float(opacity_str)
         percent = int(opacity * 100)
