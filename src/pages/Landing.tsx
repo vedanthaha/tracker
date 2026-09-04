@@ -372,7 +372,7 @@ export default function Landing() {
               gap={2}
               activeColor="#f0ede8"
               inactiveColor="color-mix(in srgb, var(--foreground) 4%, transparent)"
-              showInactive={true}
+              showInactive={false}
               fontFamily="Georgia, 'Times New Roman', serif"
               className="w-full h-full"
               style={{ filter: "drop-shadow(0 0 28px color-mix(in srgb, var(--foreground) 25%, transparent))" }}
