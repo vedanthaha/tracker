@@ -114,6 +114,12 @@ export default function MetricTracker() {
   
   const [viewMode, setViewMode] = useState<"TABLE" | "BOARD">("TABLE");
   const [selectedLeads, setSelectedLeads] = useState<Set<string>>(new Set());
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 20;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, statusFilter, websiteFilter, quickFilter]);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingLead, setEditingLead] = useState<MetricLead | null>(null);
@@ -165,6 +171,14 @@ export default function MetricTracker() {
     }
     return result;
   }, [leads, statusFilter, websiteFilter, quickFilter, searchQuery]);
+
+  const paginatedLeads = useMemo(() => {
+    if (viewMode === "BOARD") return filteredLeads;
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredLeads.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredLeads, currentPage, viewMode]);
+  
+  const totalPages = Math.max(1, Math.ceil(filteredLeads.length / ITEMS_PER_PAGE));
 
   // Today Workspace logic
   const todayWorkspace = useMemo(() => {
@@ -612,7 +626,7 @@ export default function MetricTracker() {
                 </tr>
               </thead>
               <tbody>
-                {filteredLeads.map(lead => (
+                {paginatedLeads.map(lead => (
                   <tr 
                     key={lead.id} 
                     onClick={() => handleEdit(lead)}
@@ -688,6 +702,34 @@ export default function MetricTracker() {
                 )}
               </tbody>
             </table>
+            
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="p-4 border-t border-[var(--card-border)] flex items-center justify-between">
+                <div className="text-sm text-[var(--muted)]">
+                  Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, filteredLeads.length)} of {filteredLeads.length} entries
+                </div>
+                <div className="flex items-center gap-1">
+                  <button 
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="px-3 py-1.5 rounded-md border border-[var(--card-border)] hover:bg-[var(--card)]/50 disabled:opacity-50 disabled:hover:bg-transparent text-sm transition-colors"
+                  >
+                    Previous
+                  </button>
+                  <div className="px-3 py-1.5 text-sm font-medium">
+                    {currentPage} / {totalPages}
+                  </div>
+                  <button 
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-1.5 rounded-md border border-[var(--card-border)] hover:bg-[var(--card)]/50 disabled:opacity-50 disabled:hover:bg-transparent text-sm transition-colors"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="flex gap-4 overflow-x-auto pb-32 items-start h-[600px]">
