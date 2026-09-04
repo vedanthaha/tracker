@@ -91,9 +91,19 @@ export default function AppLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [dbBannerDismissed, setDbBannerDismissed] = useState(false);
   const [sqlCopied, setSqlCopied] = useState(false);
   const hasRedirected = useRef(false);
+
+  // Close mobile sidebar on Escape
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMobileOpen(false);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   useEffect(() => {
     if (!loading && !user && !hasRedirected.current) {
@@ -132,13 +142,35 @@ export default function AppLayout() {
   };
 
   return (
-    <div className="flex h-full" style={{ background: "var(--background)" }}>
+    <div className="flex flex-col md:flex-row h-full w-full" style={{ background: "var(--background)" }}>
+      {/* Mobile Header */}
+      <div className="md:hidden flex items-center justify-between p-3 border-b shrink-0 bg-[var(--card)] z-30" style={{ borderColor: "var(--card-border)" }}>
+        <button 
+          onClick={() => setMobileOpen(true)} 
+          className="p-2 rounded-md hover:bg-black/5 dark:hover:bg-white/5"
+          aria-label="Open menu"
+        >
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M3 5H17M3 10H17M3 15H17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+        </button>
+        <span className="font-display text-xl tracking-wide" style={{ color: "var(--foreground)" }}>Dailys</span>
+        <div className="w-9" /> {/* Spacer for centering */}
+      </div>
+
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div 
+          className="md:hidden fixed inset-0 bg-black/40 dark:bg-black/60 z-40 backdrop-blur-sm" 
+          onClick={() => setMobileOpen(false)} 
+        />
+      )}
 
       {/* Sidebar - motion width */}
       <motion.aside
-        animate={{ width: collapsed ? 64 : 220 }}
+        animate={{ width: collapsed && typeof window !== "undefined" && window.innerWidth >= 768 ? 64 : 220 }}
         transition={{ duration: 0.28, ease: [0.25, 0.1, 0.25, 1] }}
-        className="flex flex-col flex-shrink-0 h-full overflow-hidden"
+        className={`fixed inset-y-0 left-0 z-50 h-full flex flex-col flex-shrink-0 overflow-hidden transition-transform duration-300 md:relative md:translate-x-0 ${mobileOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"}`}
         style={{ background: "var(--card)", borderRight: "1px solid var(--card-border)" }}
       >
         {/* Logo */}
@@ -195,6 +227,7 @@ export default function AppLayout() {
                 <NavLink
                   to={item.to}
                   end={item.to === "/dashboard"}
+                  onClick={() => { if (window.innerWidth < 768) setMobileOpen(false); }}
                   className="flex items-center gap-3 px-3 py-2.5 rounded-lg relative overflow-hidden transition-all hover:bg-[color-mix(in_srgb,var(--foreground)_4%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] active:scale-[0.98]"
                   style={{ color: isActive ? "var(--accent)" : "var(--muted)" }}
                 >
@@ -217,7 +250,7 @@ export default function AppLayout() {
                   </motion.span>
 
                   <AnimatePresence initial={false}>
-                    {!collapsed && (
+                    {(!collapsed || (typeof window !== "undefined" && window.innerWidth < 768)) && (
                       <motion.span
                         initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -6 }}
                         transition={{ duration: 0.14 }}
@@ -319,7 +352,7 @@ export default function AppLayout() {
       </motion.aside>
 
       {/* Main */}
-      <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+      <div className="flex-1 min-w-0 min-h-0 flex flex-col overflow-hidden w-full max-w-[100vw]">
         {/* DB setup banner */}
         <AnimatePresence>
           {!dbReady && !dbBannerDismissed && (

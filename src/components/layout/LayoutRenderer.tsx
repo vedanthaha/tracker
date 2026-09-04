@@ -81,10 +81,9 @@ function renderNode(node: LayoutNode, keyPath: string = "root"): React.ReactNode
       return (
         <div 
           key={keyPath} 
-          className="w-full relative"
+          className="w-full relative grid grid-cols-1 md:grid-cols-none"
           style={{
-            display: "grid",
-            gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
+            ...(typeof window !== 'undefined' && window.innerWidth >= 768 ? { gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` } : {}),
             gridAutoRows: `minmax(${rowHeight}px, auto)`,
             gap: `${gap}px`
           }}
@@ -93,7 +92,7 @@ function renderNode(node: LayoutNode, keyPath: string = "root"): React.ReactNode
             // we use the standard span mapping for widgets in the canvas
             const spanClass = child.type === "widget" && child.span && spanMap[child.span] ? spanMap[child.span] : "md:col-span-12";
             return (
-              <div key={`${keyPath}-${index}`} className={`${spanClass} w-full h-full min-w-0 min-h-0`}>
+              <div key={`${keyPath}-${index}`} className={`${spanClass} col-span-1 w-full h-full min-w-0 min-h-0`}>
                 {renderNode(child, `${keyPath}-${index}`)}
               </div>
             );

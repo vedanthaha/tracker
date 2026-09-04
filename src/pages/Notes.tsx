@@ -41,6 +41,7 @@ export default function Notes() {
   const [search, setSearch] = useState("");
   const [filterCat, setFilterCat] = useState<NoteCategory | "all">("all");
   const [saved, setSaved] = useState(false);
+  const [mobileView, setMobileView] = useState<"list" | "editor">("list");
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const selectedNote = notes.find((n) => n.id === selectedId) ?? null;
@@ -147,7 +148,7 @@ export default function Notes() {
 
       {/* Left panel - notes list */}
       <div
-        className="flex flex-col flex-shrink-0 w-full md:w-[var(--left-width)] h-1/3 md:h-full border-b md:border-b-0"
+        className={`${mobileView === "editor" ? "hidden md:flex" : "flex"} flex-col flex-shrink-0 w-full md:w-[var(--left-width)] h-full border-r md:border-b-0`}
         style={{ borderColor: "var(--card-border)", background: "var(--card)" }}
       >
         {/* Header */}
@@ -230,7 +231,10 @@ export default function Notes() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -12, height: 0, padding: 0 }}
                 transition={{ duration: 0.18, ease: "easeOut" }}
-                onClick={() => setSelectedId(note.id)}
+                onClick={() => {
+                  setSelectedId(note.id);
+                  setMobileView("editor");
+                }}
                 className="w-full text-left px-4 py-3.5"
                 style={{
                   background: selectedId === note.id ? "color-mix(in srgb, var(--foreground) 5%, transparent)" : "transparent",
@@ -297,13 +301,24 @@ export default function Notes() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -8 }}
             transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-            className="flex-1 flex flex-col overflow-hidden"
+            className={`${mobileView === "list" ? "hidden md:flex" : "flex"} flex-1 flex-col overflow-hidden w-full`}
           >
             {/* Editor toolbar */}
             <div
-              className="flex items-center gap-2 md:gap-3 px-4 md:px-6 py-3 md:py-4 flex-shrink-0 flex-wrap"
+              className="flex items-center gap-2 md:gap-3 px-3 md:px-6 py-2 md:py-4 flex-shrink-0 flex-wrap"
               style={{ borderBottom: "1px solid var(--card-border)", background: "color-mix(in srgb, var(--foreground) 1%, transparent)" }}
             >
+              <button 
+                className="md:hidden flex items-center gap-1 font-mono-data text-xs px-2 py-1.5 rounded-md"
+                style={{ color: "var(--muted)", border: "1px solid var(--card-border)" }}
+                onClick={() => setMobileView("list")}
+              >
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path d="M8 2L4 6l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                Back
+              </button>
+
               <select
                 value={selectedNote.category}
                 onChange={(e) => updateNote(selectedNote.id, { category: e.target.value as NoteCategory })}

@@ -342,8 +342,8 @@ export default function MetricTracker() {
             <p className="text-sm text-[var(--muted)]">Manage leads and outreach pipeline.</p>
           </div>
           
-          <div className="flex items-center gap-2">
-            <div className="relative flex bg-[var(--card)] border border-[var(--card-border)] rounded-md p-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative flex bg-[var(--card)] border border-[var(--card-border)] rounded-md p-1 shrink-0">
               <button 
                 onClick={() => setViewMode("TABLE")}
                 className={`p-1.5 rounded ${viewMode === "TABLE" ? "bg-[var(--foreground)] text-[var(--background)]" : "text-[var(--muted)] hover:text-[var(--foreground)]"}`}
@@ -361,7 +361,7 @@ export default function MetricTracker() {
             <button 
               onClick={handleExportCSV}
               title="Export CSV"
-              className="bg-[var(--card)] border border-[var(--card-border)] p-2 rounded-md hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-[var(--muted)]"
+              className="bg-[var(--card)] border border-[var(--card-border)] p-2 rounded-md hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-[var(--muted)] shrink-0"
             >
               <Download size={16} />
             </button>
@@ -369,7 +369,7 @@ export default function MetricTracker() {
             <button 
               onClick={() => fileInputRef.current?.click()}
               title="Import CSV"
-              className="bg-[var(--card)] border border-[var(--card-border)] p-2 rounded-md hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-[var(--muted)]"
+              className="bg-[var(--card)] border border-[var(--card-border)] p-2 rounded-md hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-[var(--muted)] shrink-0"
             >
               <Upload size={16} />
             </button>
@@ -377,13 +377,13 @@ export default function MetricTracker() {
             <button 
               onClick={() => setIsSettingsModalOpen(true)}
               title="Tracker Settings"
-              className="bg-[var(--card)] border border-[var(--card-border)] p-2 rounded-md hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-[var(--muted)] ml-2"
+              className="bg-[var(--card)] border border-[var(--card-border)] p-2 rounded-md hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-[var(--muted)] shrink-0 sm:ml-2"
             >
               <AlertCircle size={16} />
             </button>
             <button 
               onClick={handleAddNew}
-              className="bg-[var(--foreground)] text-[var(--background)] px-4 py-2 rounded-md text-sm font-medium flex items-center gap-1 hover:opacity-90 transition-opacity ml-2"
+              className="bg-[var(--foreground)] text-[var(--background)] px-4 py-2 rounded-md text-sm font-medium flex items-center gap-1 hover:opacity-90 transition-opacity shrink-0 sm:ml-2"
             >
               <Plus size={16} /> Add Lead
             </button>
@@ -391,43 +391,45 @@ export default function MetricTracker() {
         </div>
         
         {/* Filter Bar */}
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="relative">
+        <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3">
+          <div className="relative flex-1 sm:flex-none">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted)]" size={16} />
             <input
               type="text"
               placeholder="Search leads..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-[var(--card)] border border-[var(--card-border)] rounded-md pl-9 pr-3 py-1.5 text-sm focus:outline-none focus:border-[var(--primary)] transition-colors w-48"
+              className="bg-[var(--card)] border border-[var(--card-border)] rounded-md pl-9 pr-3 py-1.5 text-sm focus:outline-none focus:border-[var(--primary)] transition-colors w-full sm:w-48"
             />
           </div>
           
-          <select 
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as any)}
-            className="bg-[var(--card)] border border-[var(--card-border)] rounded-md px-3 py-1.5 text-sm focus:outline-none transition-colors appearance-none cursor-pointer"
-          >
-            <option value="ALL">All Statuses</option>
-            {Object.keys(STATUS_LABELS).map(key => (
-              <option key={key} value={key}>{STATUS_LABELS[key as LeadStatus]}</option>
-            ))}
-          </select>
-          
-          <select 
-            value={websiteFilter}
-            onChange={(e) => setWebsiteFilter(e.target.value as any)}
-            className="bg-[var(--card)] border border-[var(--card-border)] rounded-md px-3 py-1.5 text-sm focus:outline-none transition-colors appearance-none cursor-pointer"
-          >
-            <option value="ALL">All Websites</option>
-            <option value="NO_WEBSITE">No Website</option>
-            <option value="POOR">Poor Website</option>
-            <option value="AVERAGE">Average Website</option>
-            <option value="GOOD">Good Website</option>
-            <option value="EXCELLENT">Excellent Website</option>
-          </select>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <select 
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as any)}
+              className="flex-1 sm:flex-none bg-[var(--card)] border border-[var(--card-border)] rounded-md px-3 py-1.5 text-sm focus:outline-none transition-colors appearance-none cursor-pointer"
+            >
+              <option value="ALL">All Statuses</option>
+              {Object.keys(STATUS_LABELS).map(key => (
+                <option key={key} value={key}>{STATUS_LABELS[key as LeadStatus]}</option>
+              ))}
+            </select>
+            
+            <select 
+              value={websiteFilter}
+              onChange={(e) => setWebsiteFilter(e.target.value as any)}
+              className="flex-1 sm:flex-none bg-[var(--card)] border border-[var(--card-border)] rounded-md px-3 py-1.5 text-sm focus:outline-none transition-colors appearance-none cursor-pointer"
+            >
+              <option value="ALL">All Websites</option>
+              <option value="NO_WEBSITE">No Website</option>
+              <option value="POOR">Poor Website</option>
+              <option value="AVERAGE">Average Website</option>
+              <option value="GOOD">Good Website</option>
+              <option value="EXCELLENT">Excellent Website</option>
+            </select>
+          </div>
 
-          <div className="h-6 w-px bg-[var(--card-border)] mx-1" />
+          <div className="hidden sm:block h-6 w-px bg-[var(--card-border)] mx-1" />
 
           {/* Quick Filters */}
           <div className="flex items-center gap-1 overflow-x-auto">

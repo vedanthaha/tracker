@@ -54,8 +54,8 @@ export default function Home() {
   }, [layouts]);
 
   return (
-    <div className="h-full overflow-y-auto">
-      <div className="px-4 md:px-8 py-6 md:py-8 max-w-5xl mx-auto">
+    <div className="h-full overflow-y-auto overflow-x-hidden w-full">
+      <div className="px-4 md:px-8 py-6 md:py-8 w-full max-w-5xl mx-auto">
         <LayoutRenderer spec={currentLayout} />
       </div>
     </div>

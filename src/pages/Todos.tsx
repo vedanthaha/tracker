@@ -88,7 +88,7 @@ function NewItemModal({ onClose }: { onClose: () => void }) {
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 8 }}
         transition={{ type: "spring", stiffness: 400, damping: 30 }}
-        className="w-full max-w-md rounded-2xl p-6"
+        className="w-[calc(100%-2rem)] max-w-md rounded-2xl p-5 md:p-6"
         style={{ background: "var(--card)", border: "1px solid var(--card-border)" }}
       >
         {/* Header */}
@@ -447,86 +447,90 @@ export default function Todos() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 16, height: 0 }}
                   transition={{ duration: 0.2, ease: "easeOut" }}
-                  className="task-item group flex items-center gap-4 px-5 py-4"
+                  className="task-item group flex flex-wrap md:flex-nowrap items-center gap-3 md:gap-4 px-4 md:px-5 py-3 md:py-4"
                   style={{
                     borderBottom: idx < filtered.length - 1 ? "1px solid var(--card-border)" : "none",
                     opacity: task.completed ? 0.45 : 1,
                   }}
                 >
-                  <motion.button
-                    whileHover={{ scale: 1.12 }} whileTap={{ scale: 0.88 }}
-                    className={`task-checkbox ${task.completed ? "checked" : ""}`}
-                    onClick={() => toggleTask(task.id)}
-                  >
-                    {task.completed && (
-                      <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
-                        <path d="M1 4L3.5 6.5L9 1" stroke="var(--green)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    )}
-                  </motion.button>
-
-                  <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: PRIORITY_COLORS[task.priority] }} />
-
-                  <span
-                    className="flex-1 text-sm"
-                    style={{
-                      textDecoration: task.completed ? "line-through" : "none",
-                      color: task.completed ? "var(--muted)" : "var(--foreground)",
-                      fontWeight: task.priority === "high" ? 500 : 400,
-                    }}
-                  >
-                    {task.text}
-                  </span>
-
-                  {linkedNote && (
+                  <div className="flex items-center gap-3 flex-1 min-w-[200px] max-w-full">
                     <motion.button
-                      whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}
-                      onClick={() => navigate("/dashboard/notes")}
-                      className="flex items-center gap-1.5 font-mono-data text-xs px-2 py-0.5 rounded-full flex-shrink-0"
-                      style={{
-                        background: "rgba(155,140,196,0.1)",
-                        color: "#9b8cc4",
-                        border: "1px solid rgba(155,140,196,0.25)",
-                      }}
-                      title={`Linked note: ${linkedNote.title}`}
+                      whileHover={{ scale: 1.12 }} whileTap={{ scale: 0.88 }}
+                      className={`task-checkbox flex-shrink-0 ${task.completed ? "checked" : ""}`}
+                      onClick={() => toggleTask(task.id)}
                     >
-                      <svg width="9" height="9" viewBox="0 0 12 12" fill="none">
-                        <circle cx="6" cy="3" r="2" stroke="currentColor" strokeWidth="1.4" />
-                        <circle cx="2" cy="10" r="1.5" stroke="currentColor" strokeWidth="1.4" />
-                        <circle cx="10" cy="10" r="1.5" stroke="currentColor" strokeWidth="1.4" />
-                        <path d="M6 5L2 8.5M6 5L10 8.5" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
-                      </svg>
-                      note
+                      {task.completed && (
+                        <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                          <path d="M1 4L3.5 6.5L9 1" stroke="var(--green)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      )}
                     </motion.button>
-                  )}
 
-                  {task.time && (
-                    <span className="font-mono-data text-xs flex-shrink-0" style={{ color: "var(--muted)" }}>
-                      {task.time}
+                    <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: PRIORITY_COLORS[task.priority] }} />
+
+                    <span
+                      className="text-sm break-words"
+                      style={{
+                        textDecoration: task.completed ? "line-through" : "none",
+                        color: task.completed ? "var(--muted)" : "var(--foreground)",
+                        fontWeight: task.priority === "high" ? 500 : 400,
+                      }}
+                    >
+                      {task.text}
                     </span>
-                  )}
+                  </div>
 
-                  <span
-                    className="font-mono-data text-xs px-2 py-0.5 rounded-full flex-shrink-0"
-                    style={{
-                      background: `${CAT_COLORS[task.category]}18`,
-                      color: CAT_COLORS[task.category],
-                      border: `1px solid ${CAT_COLORS[task.category]}30`,
-                    }}
-                  >
-                    {CAT_LABELS[task.category]}
-                  </span>
+                  <div className="flex flex-wrap items-center gap-2 md:gap-3 pl-8 md:pl-0 w-full md:w-auto">
+                    {linkedNote && (
+                      <motion.button
+                        whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}
+                        onClick={() => navigate("/dashboard/notes")}
+                        className="flex items-center gap-1.5 font-mono-data text-[10px] md:text-xs px-2 py-0.5 rounded-full flex-shrink-0"
+                        style={{
+                          background: "rgba(155,140,196,0.1)",
+                          color: "#9b8cc4",
+                          border: "1px solid rgba(155,140,196,0.25)",
+                        }}
+                        title={`Linked note: ${linkedNote.title}`}
+                      >
+                        <svg width="9" height="9" viewBox="0 0 12 12" fill="none">
+                          <circle cx="6" cy="3" r="2" stroke="currentColor" strokeWidth="1.4" />
+                          <circle cx="2" cy="10" r="1.5" stroke="currentColor" strokeWidth="1.4" />
+                          <circle cx="10" cy="10" r="1.5" stroke="currentColor" strokeWidth="1.4" />
+                          <path d="M6 5L2 8.5M6 5L10 8.5" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
+                        </svg>
+                        note
+                      </motion.button>
+                    )}
 
-                  <motion.button
-                    whileHover={{ scale: 1.2 }} whileTap={{ scale: 0.8 }}
-                    onClick={() => deleteTask(task.id)}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity duration-150 flex-shrink-0"
-                    style={{ color: "var(--muted)" }}
-                  >
-                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                      <path d="M2 2L10 10M10 2L2 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                    </svg>
-                  </motion.button>
+                    {task.time && (
+                      <span className="font-mono-data text-[10px] md:text-xs flex-shrink-0" style={{ color: "var(--muted)" }}>
+                        {task.time}
+                      </span>
+                    )}
+
+                    <span
+                      className="font-mono-data text-[10px] md:text-xs px-2 py-0.5 rounded-full flex-shrink-0"
+                      style={{
+                        background: `${CAT_COLORS[task.category]}18`,
+                        color: CAT_COLORS[task.category],
+                        border: `1px solid ${CAT_COLORS[task.category]}30`,
+                      }}
+                    >
+                      {CAT_LABELS[task.category]}
+                    </span>
+
+                    <motion.button
+                      whileHover={{ scale: 1.2 }} whileTap={{ scale: 0.8 }}
+                      onClick={() => deleteTask(task.id)}
+                      className="md:opacity-0 group-hover:opacity-100 transition-opacity duration-150 flex-shrink-0 ml-auto md:ml-0 p-1"
+                      style={{ color: "var(--muted)" }}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 12 12" fill="none">
+                        <path d="M2 2L10 10M10 2L2 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                      </svg>
+                    </motion.button>
+                  </div>
                 </motion.div>
               );
             })}
