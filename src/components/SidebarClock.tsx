@@ -113,6 +113,12 @@ const MATRICES: Record<string, number[][]> = {
   ]
 };
 
+/**
+ * Renders a dot-matrix glyph from a two-dimensional cell pattern.
+ *
+ * @param matrix - The rows and columns of the glyph, where truthy values mark active cells.
+ * @returns The rendered dot-matrix glyph.
+ */
 function DotMatrixDigit({ matrix }: { matrix: number[][] }) {
   return (
     <div className="flex flex-col gap-[2px]">
@@ -136,6 +142,11 @@ function DotMatrixDigit({ matrix }: { matrix: number[][] }) {
   );
 }
 
+/**
+ * Displays the current local time and date using the selected clock style.
+ *
+ * @param collapsed - Whether the clock panel is hidden
+ */
 export function SidebarClock({ collapsed }: { collapsed: boolean }) {
   const [now, setNow] = useState(new Date());
   const { activeClock } = useClock();

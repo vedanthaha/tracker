@@ -1,4 +1,4 @@
-﻿import {
+import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, RadialBarChart, RadialBar,
@@ -42,6 +42,14 @@ const TICK = {
   fontFamily: "JetBrains Mono, monospace",
 };
 
+/**
+ * Renders an animated card container with a title and content.
+ *
+ * @param title - The card title.
+ * @param children - The content displayed inside the card.
+ * @param className - Additional CSS classes applied to the card.
+ * @param delay - The animation delay in seconds.
+ */
 function Card({ title, children, className = "", delay = 0 }: { title: string; children: React.ReactNode; className?: string; delay?: number }) {
   return (
     <motion.div
@@ -57,6 +65,11 @@ function Card({ title, children, className = "", delay = 0 }: { title: string; c
   );
 }
 
+/**
+ * Renders a responsive donut chart with a legend for labeled percentage data.
+ *
+ * @param data - The chart segments, including their labels, percentage values, and colors.
+ */
 function DonutChart({ data }: { data: { name: string; value: number; color: string }[] }) {
   const isEmpty = data.every((d) => d.value === 0);
   if (isEmpty) {
@@ -95,6 +108,9 @@ function DonutChart({ data }: { data: { name: string; value: number; color: stri
   );
 }
 
+/**
+ * Renders an analytics dashboard with task, note, productivity, and activity insights.
+ */
 export default function Analytics() {
   const { tasks, notes } = useApp();
 

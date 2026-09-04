@@ -1,10 +1,13 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApp } from "../context/AppContext";
 import { LayoutRenderer } from "../components/layout/LayoutRenderer";
 import { LayoutSpec } from "../lib/design/LayoutSpec";
 import { supabase } from "../lib/supabase";
 
+/**
+ * Provides an interface for generating, previewing, applying, and discarding AI-created workspace layouts.
+ */
 export default function DesignStudio() {
   const { layouts, saveLayout } = useApp();
   

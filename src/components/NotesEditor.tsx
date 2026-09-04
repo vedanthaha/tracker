@@ -432,6 +432,13 @@ const MenuBar = ({ editor, setIsUploading }: { editor: Editor, setIsUploading: (
   );
 };
 
+/**
+ * Renders a rich-text notes editor and synchronizes edited content with the caller.
+ *
+ * @param content - Initial or externally updated note content as plain text, HTML, or editor JSON
+ * @param onChange - Callback invoked with the editor's current JSON content
+ * @param noteId - Optional note identifier used for image uploads
+ */
 export default function NotesEditor({ content, onChange, noteId }: NotesEditorProps) {
   const isUpdatingRef = useRef(false);
   const [isUploading, setIsUploading] = useState(false);

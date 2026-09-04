@@ -46,6 +46,9 @@ const PRIORITY_COLORS: Record<LeadPriority, string> = {
   COLD: "color-mix(in srgb, var(--foreground) 20%, transparent)",
 };
 
+/**
+ * Manages lead tracking, filtering, analytics, and add, edit, and delete workflows.
+ */
 export default function MetricTracker() {
   const { leads, pitches, analytics, loading, error, addLead, updateLead, deleteLead, fetchActivities, addActivity, addPitch } = useMetricLeads();
   const [searchQuery, setSearchQuery] = useState("");
@@ -295,6 +298,18 @@ export default function MetricTracker() {
   );
 }
 
+/**
+ * Renders a modal for creating or editing a lead, including lead details, pitch assignment, and activity management.
+ *
+ * @param lead - The lead to edit, or `null` to create a new lead
+ * @param pitches - Available pitches that can be assigned to the lead
+ * @param onClose - Called when the modal is closed
+ * @param onSave - Saves the lead data
+ * @param onDelete - Deletes the existing lead
+ * @param fetchActivities - Retrieves activities for the existing lead
+ * @param addActivity - Records an activity for the existing lead
+ * @param addPitch - Creates a pitch that can be assigned to the lead
+ */
 function LeadModal({ 
   lead, 
   pitches,

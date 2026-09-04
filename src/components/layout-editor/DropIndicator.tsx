@@ -1,4 +1,4 @@
-﻿import { useLayoutEditor } from "./LayoutEditorContext";
+import { useLayoutEditor } from "./LayoutEditorContext";
 
 interface DropIndicatorProps {
   parentId: string;
@@ -6,6 +6,14 @@ interface DropIndicatorProps {
   direction: "row" | "col" | "grid";
 }
 
+/**
+ * Renders a directional drop-zone indicator for a layout editor.
+ *
+ * @param parentId - The identifier of the parent layout node.
+ * @param index - The child position represented by the drop zone.
+ * @param direction - The layout direction used to orient the indicator.
+ * @returns The rendered drop-zone indicator.
+ */
 export function DropIndicator({ parentId, index, direction }: DropIndicatorProps) {
   const { draggedNodeId, dropTargetId, dropPosition, setDropTargetId, setDropPosition } = useLayoutEditor();
   

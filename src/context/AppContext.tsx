@@ -72,7 +72,12 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | null>(null);
 
-// -- DB row <-> frontend type mappers ----------------------------
+/**
+ * Converts a database task row into a frontend `Task` object.
+ *
+ * @param row - Database task row with snake_case column names
+ * @returns A normalized task with optional fields mapped from nullable database values
+ */
 
 function mapTask(row: Record<string, unknown>): Task {
   return {
@@ -88,6 +93,12 @@ function mapTask(row: Record<string, unknown>): Task {
   };
 }
 
+/**
+ * Converts a database note row into a frontend `Note` object.
+ *
+ * @param row - The database row containing note fields.
+ * @returns A normalized note with parsed object content when available.
+ */
 function mapNote(row: Record<string, unknown>): Note {
   // Handle case where content might come back as parsed JSON object or string
   let content = row.content;
@@ -111,6 +122,11 @@ function mapNote(row: Record<string, unknown>): Note {
   };
 }
 
+/**
+ * Provides application state and operations for tasks, notes, layouts, authentication, profiles, and avatars.
+ *
+ * @param children - The content rendered within the application context.
+ */
 export function AppProvider({ children }: { children: ReactNode }) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);

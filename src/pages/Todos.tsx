@@ -25,6 +25,13 @@ const PRIORITY_COLORS: Record<Priority, string> = {
 
 type CreateMode = "task" | "linked";
 
+/**
+ * Renders a circular progress indicator for a measured value.
+ *
+ * @param value - The current progress value
+ * @param max - The maximum progress value
+ * @param size - The diameter of the indicator in pixels
+ */
 function ProgressRing({ value, max, size = 56 }: { value: number; max: number; size?: number }) {
   const radius = (size - 6) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -39,6 +46,11 @@ function ProgressRing({ value, max, size = 56 }: { value: number; max: number; s
   );
 }
 
+/**
+ * Displays a modal for creating a task or a task linked to a note.
+ *
+ * @param onClose - Closes the modal.
+ */
 function NewItemModal({ onClose }: { onClose: () => void }) {
   const { addTask, createLinked } = useApp();
   const navigate = useNavigate();
@@ -267,6 +279,9 @@ function NewItemModal({ onClose }: { onClose: () => void }) {
   );
 }
 
+/**
+ * Displays the task manager with statistics, filters, sorting controls, and task actions.
+ */
 export default function Todos() {
   const { tasks, toggleTask, deleteTask, notes } = useApp();
   const navigate = useNavigate();

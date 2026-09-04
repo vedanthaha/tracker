@@ -15,6 +15,12 @@ replacements = {
 }
 
 def process_dir(directory):
+    """
+    Replace known encoding artifacts in supported source files throughout a directory.
+    
+    Parameters:
+        directory (str): Root directory to scan recursively.
+    """
     for root, _, files in os.walk(directory):
         for file in files:
             if not file.endswith(('.ts', '.tsx', '.js', '.jsx', '.css', '.html')):

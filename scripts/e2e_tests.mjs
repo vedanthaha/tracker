@@ -15,6 +15,11 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let userId = null;
 let authToken = null;
 
+/**
+ * Authenticates the fixed end-to-end test user and stores its credentials.
+ *
+ * Creates the user if sign-in fails. Exits the process if user creation fails.
+ */
 async function authenticate() {
   const { data, error } = await supabase.auth.signInWithPassword({
     email: 'test@example.com',
@@ -52,6 +57,9 @@ const INITIAL_LAYOUT = {
   }
 };
 
+/**
+ * Seeds the authenticated user's initial home workspace layout.
+ */
 async function seedTestLayout() {
   console.log("Seeding initial workspace_layout for user...");
   const { error } = await supabase
@@ -69,6 +77,11 @@ async function seedTestLayout() {
   console.log("✓ Saved initial layout to DB.");
 }
 
+/**
+ * Checks whether the authenticated user's home layout matches the expected specification.
+ * @param {Object} expectedSpec - The expected home layout specification.
+ * @returns {boolean} `true` if the stored layout matches the expected specification, `false` otherwise.
+ */
 async function verifyDatabaseUnchanged(expectedSpec) {
   const { data, error } = await supabase
     .from("workspace_layouts")
@@ -81,6 +94,11 @@ async function verifyDatabaseUnchanged(expectedSpec) {
   return JSON.stringify(data.layout_spec) === JSON.stringify(expectedSpec);
 }
 
+/**
+ * Persists a user's home workspace layout.
+ * @param {Object} layoutSpec - The layout specification to store.
+ * @throws {Error} If the layout cannot be saved.
+ */
 async function applyLayout(layoutSpec) {
   const { error } = await supabase
     .from("workspace_layouts")
@@ -93,6 +111,11 @@ async function applyLayout(layoutSpec) {
   if (error) throw new Error(error.message);
 }
 
+/**
+ * Generate a 1536-dimensional embedding for a retrieval query.
+ * @param {string} text - The text to embed.
+ * @return {Promise<number[]>} The generated embedding values.
+ */
 async function generateEmbedding(text) {
   const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-2:embedContent?key=${GEMINI_KEY}`, {
     method: "POST",
@@ -111,6 +134,11 @@ async function generateEmbedding(text) {
   return data.embedding.values;
 }
 
+/**
+ * Runs a retrieval test for a prompt against the design knowledge base.
+ * @param {string} prompt - The query used to retrieve relevant design knowledge.
+ * @returns {boolean} `true` if retrieval succeeds, `false` if the knowledge-base query fails.
+ */
 async function runRAGTest(prompt, expectedIntents) {
   console.log(`\n--- RAG TEST: "${prompt}" ---`);
   const embedding = await generateEmbedding(prompt);
@@ -129,6 +157,13 @@ async function runRAGTest(prompt, expectedIntents) {
   return true;
 }
 
+/**
+ * Sends a layout-generation request to the Edge Function and evaluates its response.
+ * @param {string} prompt - The instruction used to generate or modify the layout.
+ * @param {boolean} [sendCurrentLayout=true] - Whether to include the initial layout in the request.
+ * @param {boolean} [expectFail=false] - Whether the request is expected to fail.
+ * @return {Object|null} The Edge Function response for an unexpected success or expected success, or `null` when the outcome is an expected or unexpected failure.
+ */
 async function runEdgeFunction(prompt, sendCurrentLayout = true, expectFail = false) {
   console.log(`\n--- EDGE FUNCTION: "${prompt}" ---`);
   
@@ -177,6 +212,9 @@ async function runEdgeFunction(prompt, sendCurrentLayout = true, expectFail = fa
   return result;
 }
 
+/**
+ * Runs the end-to-end layout generation, retrieval, validation, and security tests.
+ */
 async function runTests() {
   await authenticate();
   await seedTestLayout();

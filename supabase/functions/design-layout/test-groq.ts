@@ -2,6 +2,9 @@ import { GroqProvider } from "./provider.ts";
 import { generateLayoutPrompt } from "./prompts.ts";
 import { LayoutSchema } from "./types.ts";
 
+/**
+ * Generates a test layout with the Groq provider and validates the result against the layout schema.
+ */
 async function main() {
   const providerKey = process.env.GROQ_API_KEY || "dummy_key";
   const provider = new GroqProvider(providerKey);

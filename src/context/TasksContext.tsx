@@ -1,4 +1,4 @@
-﻿import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, ReactNode } from "react";
 import { Priority, TaskCategory } from "./AppContext";
 
 interface TasksContextType {
@@ -16,6 +16,11 @@ interface TasksContextType {
 
 const TasksContext = createContext<TasksContextType | null>(null);
 
+/**
+ * Provides task-list UI state and controls to descendant components.
+ *
+ * @param children - Components that consume the task context
+ */
 export function TasksProvider({ children }: { children: ReactNode }) {
   const [activeFilter, setActiveFilter] = useState<"all" | TaskCategory>("all");
   const [activePriority, setActivePriority] = useState<"all" | Priority>("all");
@@ -43,6 +48,12 @@ export function TasksProvider({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * Provides access to task-list UI state and its setters.
+ *
+ * @returns The current task context
+ * @throws An error if called outside a `TasksProvider`
+ */
 export function useTasksContext() {
   const ctx = useContext(TasksContext);
   if (!ctx) throw new Error("useTasksContext must be used within TasksProvider");

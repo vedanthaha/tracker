@@ -1,5 +1,12 @@
 import { supabase } from './supabase';
 
+/**
+ * Uploads an image asset for a note and records its metadata.
+ *
+ * @param noteId - Identifier of the note associated with the image
+ * @returns The asset identifier, public URL, image dimensions, and original filename
+ * @throws If the user is unauthenticated, the file type or size is invalid, or upload or metadata insertion fails
+ */
 export async function uploadImageAsset(file: File, noteId: string): Promise<{ assetId: string, publicUrl: string, width: number, height: number, alt: string }> {
   // 1. Get user id
   const { data: { user } } = await supabase.auth.getUser();

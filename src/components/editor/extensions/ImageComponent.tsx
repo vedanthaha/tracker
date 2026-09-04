@@ -2,6 +2,15 @@ import { NodeViewWrapper, NodeViewProps } from '@tiptap/react';
 import { AlignLeft, AlignCenter, AlignRight, Maximize, Trash2, Replace, Link as LinkIcon, Unlink } from 'lucide-react';
 import { useRef, useState, useEffect } from 'react';
 
+/**
+ * Displays and edits an image within a Tiptap node view.
+ *
+ * Supports resizing, alignment, aspect-ratio control, captions, alt text, image replacement, and deletion.
+ *
+ * @param node - The image node and its attributes.
+ * @param selected - Whether the image is currently selected.
+ * @param extension - The image extension configuration.
+ */
 export default function ImageComponent({ node, updateAttributes, deleteNode, selected, extension }: NodeViewProps) {
   const { src, alt, caption, width, height, keepRatio, align } = node.attrs;
   const [isResizing, setIsResizing] = useState(false);

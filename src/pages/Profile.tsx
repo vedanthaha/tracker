@@ -1,8 +1,11 @@
-﻿import { useState, useRef } from "react";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApp } from "../context/AppContext";
 import { useNavigate } from "react-router";
 
+/**
+ * Renders the authenticated user's profile page with account details, avatar management, personal information editing, usage statistics, and session controls.
+ */
 export default function Profile() {
   const { user, updateProfile, uploadAvatar, logout, tasks, notes } = useApp();
   const navigate = useNavigate();

@@ -6,6 +6,11 @@ import { useSortable, SortableContext, rectSortingStrategy } from "@dnd-kit/sort
 import { CSS } from "@dnd-kit/utilities";
 import { useDroppable } from "@dnd-kit/core";
 
+/**
+ * Provides a pointer control for adjusting a widget's column span.
+ *
+ * @param node - The widget node whose span is resized
+ */
 function WidgetResizeHandle({ node }: { node: LayoutNode }) {
   const { updateNodeProps } = useLayoutEditor();
   
@@ -54,6 +59,12 @@ function WidgetResizeHandle({ node }: { node: LayoutNode }) {
   );
 }
 
+/**
+ * Renders an editable widget, grid, or stack node with layout-editor interactions.
+ *
+ * @param node - The layout node to render.
+ * @param isOverlay - Whether the node is rendered as a drag overlay.
+ */
 export function EditableNodeRenderer({ node, isOverlay = false }: { node: LayoutNode, isOverlay?: boolean }) {
   const { selectedNodeId, selectNode, removeNodeById, updateNodeProps } = useLayoutEditor();
   const isSelected = selectedNodeId === node.id;

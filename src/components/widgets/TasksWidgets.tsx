@@ -1,4 +1,4 @@
-﻿import { useMemo } from "react";
+import { useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router";
 import { useApp, Priority, TaskCategory } from "../../context/AppContext";
@@ -24,6 +24,13 @@ const PRIORITY_COLORS: Record<Priority, string> = {
   low: "color-mix(in srgb, var(--foreground) 20%, transparent)",
 };
 
+/**
+ * Renders a circular progress indicator for a value relative to a maximum.
+ *
+ * @param value - The current progress value
+ * @param max - The maximum progress value
+ * @param size - The diameter of the indicator in pixels
+ */
 function ProgressRing({ value, max, size = 56 }: { value: number; max: number; size?: number }) {
   const radius = (size - 6) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -38,6 +45,9 @@ function ProgressRing({ value, max, size = 56 }: { value: number; max: number; s
   );
 }
 
+/**
+ * Renders the task manager heading and a button for opening the new-task modal.
+ */
 export function TaskHeaderWidget() {
   const { setShowModal } = useTasksContext();
 
@@ -65,6 +75,9 @@ export function TaskHeaderWidget() {
   );
 }
 
+/**
+ * Displays summary statistics for the current task list, including total, completed, remaining, and incomplete high-priority tasks.
+ */
 export function TaskStatsWidget() {
   const { tasks } = useApp();
   const completed = tasks.filter((t) => t.completed).length;
@@ -94,6 +107,9 @@ export function TaskStatsWidget() {
   );
 }
 
+/**
+ * Provides task category, priority, visibility, sorting, and completion-progress controls.
+ */
 export function TaskFiltersWidget() {
   const { tasks } = useApp();
   const {
@@ -184,6 +200,9 @@ export function TaskFiltersWidget() {
   );
 }
 
+/**
+ * Displays the filtered and sorted task list with task actions and an option to add a new task.
+ */
 export function TaskListWidget() {
   const { tasks, toggleTask, deleteTask, notes } = useApp();
   const navigate = useNavigate();

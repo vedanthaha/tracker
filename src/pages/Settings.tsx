@@ -6,6 +6,9 @@ import { CustomThemeEditor } from "../components/CustomThemeEditor";
 import { CustomTheme } from "../lib/theme/types";
 import { supabase } from "../lib/supabase";
 
+/**
+ * Renders the settings page for customizing the application's appearance, typography, clock, and custom themes.
+ */
 export default function Settings() {
   const { theme, setThemeId, availableThemes, customThemes, fetchCustomThemes, activeFontId, setFontId, availableFonts } = useTheme();
   const { activeClock, setClockId, availableClocks } = useClock();

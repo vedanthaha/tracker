@@ -1,7 +1,12 @@
-﻿import { LayoutNode, LayoutSpec, GridContainer, StackContainer, WidgetNode } from "../../lib/design/LayoutSpec";
+import { LayoutNode, LayoutSpec, GridContainer, StackContainer, WidgetNode } from "../../lib/design/LayoutSpec";
 import { nanoid } from "nanoid";
 
-// Recursively ensure all nodes have unique IDs for editor tracking
+/**
+ * Ensures every node in a layout tree has an ID.
+ *
+ * @param node - The root node of the layout tree
+ * @returns A cloned layout tree with generated IDs assigned to nodes that lack them
+ */
 export function ensureNodeIds(node: LayoutNode): LayoutNode {
   const newNode = { ...node };
   if (!newNode.id) {
@@ -15,6 +20,12 @@ export function ensureNodeIds(node: LayoutNode): LayoutNode {
   return newNode;
 }
 
+/**
+ * Finds a layout node by its ID.
+ *
+ * @param id - The ID of the node to find
+ * @returns The matching layout node, or `null` if no node has the specified ID
+ */
 export function findNode(root: LayoutNode, id: string): LayoutNode | null {
   if (root.id === id) return root;
   if (root.type === "grid" || root.type === "stack") {
@@ -26,6 +37,12 @@ export function findNode(root: LayoutNode, id: string): LayoutNode | null {
   return null;
 }
 
+/**
+ * Finds the container that directly contains a node with the specified ID.
+ *
+ * @param childId - The ID of the child whose parent to find
+ * @returns The containing grid or stack container, or `null` if no direct parent is found
+ */
 export function findParent(root: LayoutNode, childId: string): GridContainer | StackContainer | null {
   if (root.type === "grid" || root.type === "stack") {
     if (root.children.some(c => c.id === childId)) {
@@ -39,6 +56,12 @@ export function findParent(root: LayoutNode, childId: string): GridContainer | S
   return null;
 }
 
+/**
+ * Removes the node with the specified ID from a layout tree.
+ *
+ * @param id - The ID of the node to remove
+ * @returns The updated layout tree, or `null` if the root node matches the ID
+ */
 export function removeNode(root: LayoutNode, id: string): LayoutNode | null {
   if (root.id === id) return null; // Can't return null from root easily, handled by caller
 
@@ -56,6 +79,15 @@ export function removeNode(root: LayoutNode, id: string): LayoutNode | null {
   return root;
 }
 
+/**
+ * Inserts a layout node into the specified grid or stack container.
+ *
+ * @param root - The layout tree to update
+ * @param parentId - The ID of the container that receives the node
+ * @param node - The node to insert
+ * @param index - The insertion position; invalid or omitted values append the node
+ * @returns The layout tree with the node inserted
+ */
 export function insertNode(
   root: LayoutNode,
   parentId: string,
@@ -82,6 +114,14 @@ export function insertNode(
   return root;
 }
 
+/**
+ * Applies updates to the node with the specified ID in a layout tree.
+ *
+ * @param root - The root of the layout tree to update
+ * @param id - The ID of the node to update
+ * @param updates - The properties to merge into the matching node
+ * @returns The layout tree with the specified updates applied
+ */
 export function updateNode(root: LayoutNode, id: string, updates: Partial<LayoutNode>): LayoutNode {
   if (root.id === id) {
     return { ...root, ...updates } as LayoutNode;
@@ -95,7 +135,12 @@ export function updateNode(root: LayoutNode, id: string, updates: Partial<Layout
   return root;
 }
 
-// Clean up empty containers
+/**
+ * Removes empty grid and stack containers from a layout tree.
+ *
+ * @param node - The layout node to prune
+ * @returns The pruned node, or `null` if the node is an empty container
+ */
 export function pruneEmptyContainers(node: LayoutNode): LayoutNode | null {
   if (node.type === "grid" || node.type === "stack") {
     const prunedChildren = node.children

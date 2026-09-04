@@ -11,6 +11,11 @@ if (!GEMINI_KEY || !SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
+/**
+ * Generates a retrieval-query embedding for the supplied text.
+ * @param {string} text - The text to embed.
+ * @return {number[]} The 1,536-dimensional embedding vector.
+ */
 async function generateEmbedding(text) {
   const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-2:embedContent?key=${GEMINI_KEY}`, {
     method: "POST",
@@ -28,6 +33,9 @@ async function generateEmbedding(text) {
   return data.embedding.values;
 }
 
+/**
+ * Queries design knowledge using a command-line query and displays the most relevant results.
+ */
 async function run() {
   const query = process.argv[2] || "How do I show tasks on the home screen?";
   console.log(`Querying: "${query}"`);

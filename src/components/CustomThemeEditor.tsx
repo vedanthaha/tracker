@@ -11,6 +11,12 @@ interface Props {
   onClose: () => void;
 }
 
+/**
+ * Provides a JSON editor for creating or editing custom themes, including preview, import, export, formatting, and persistence controls.
+ *
+ * @param initialTheme - The existing custom theme to edit; when omitted, the active theme is used as a template for a new theme.
+ * @param onClose - Callback invoked when the editor closes after cancellation or a successful save.
+ */
 export function CustomThemeEditor({ initialTheme, onClose }: Props) {
   const { theme, setPreviewTheme, setThemeId, fetchCustomThemes } = useTheme();
   const { user } = useApp();

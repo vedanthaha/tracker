@@ -6,6 +6,12 @@ interface LayoutRendererProps {
   spec: LayoutSpec;
 }
 
+/**
+ * Renders the root node of a layout specification in a themed container.
+ *
+ * @param spec - The layout specification to render.
+ * @returns The rendered layout, or `null` when the specification or root node is missing.
+ */
 export function LayoutRenderer({ spec }: LayoutRendererProps) {
   if (!spec || !spec.root) return null;
   return (
@@ -15,6 +21,15 @@ export function LayoutRenderer({ spec }: LayoutRendererProps) {
   );
 }
 
+/**
+ * Renders a layout node and its descendants according to the node type.
+ *
+ * Unknown widget IDs produce an error placeholder, while missing or unsupported
+ * nodes produce no rendered output.
+ *
+ * @param keyPath - The hierarchical key used to identify the rendered node.
+ * @returns The rendered React node, or `null` when the node cannot be rendered.
+ */
 function renderNode(node: LayoutNode, keyPath: string = "root"): React.ReactNode {
   if (!node) return null;
   switch (node.type) {
