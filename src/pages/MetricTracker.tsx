@@ -929,6 +929,9 @@ function LeadModal({
       } else if (logType === "CALL" && logOutcome === "BOOKED") {
         setFormData(p => ({ ...p, status: "CALL_BOOKED" }));
       }
+    } catch (err: any) {
+      console.error(err);
+      alert(`Failed to log activity. Your database tables might be missing. Error: ${err.message || "Unknown error"}`);
     } finally {
       setLogging(false);
     }

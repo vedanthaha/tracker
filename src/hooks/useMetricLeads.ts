@@ -189,7 +189,7 @@ export function useMetricLeads() {
         
       // 3. Fetch last 7 days activities
       const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 14);
       
       const { data: recentActivities } = await supabase
         .from("metric_activities")
