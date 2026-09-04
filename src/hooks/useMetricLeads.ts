@@ -59,10 +59,39 @@ export interface MetricPitch {
   updated_at: string;
 }
 
+export interface MetricSavedView {
+  id: string;
+  user_id: string;
+  name: string;
+  filters: any;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MetricPreferences {
+  reminders_enabled: boolean;
+  reminder_lead_time: string;
+  overdue_reminders_enabled: boolean;
+  daily_summary_enabled: boolean;
+  daily_call_goal: number | null;
+  daily_activity_goal: number | null;
+}
+
+const DEFAULT_PREFS: MetricPreferences = {
+  reminders_enabled: true,
+  reminder_lead_time: "30m",
+  overdue_reminders_enabled: true,
+  daily_summary_enabled: true,
+  daily_call_goal: null,
+  daily_activity_goal: null
+};
+
 export function useMetricLeads() {
   const { user } = useApp();
   const [leads, setLeads] = useState<MetricLead[]>([]);
   const [pitches, setPitches] = useState<MetricPitch[]>([]);
+  const [savedViews, setSavedViews] = useState<MetricSavedView[]>([]);
+  const [preferences, setPreferences] = useState<MetricPreferences>(DEFAULT_PREFS);
   const [analytics, setAnalytics] = useState<{ recentActivities: MetricActivity[], totalCalls: number, connectedCalls: number }>({ recentActivities: [], totalCalls: 0, connectedCalls: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -71,14 +100,31 @@ export function useMetricLeads() {
     if (user) {
       fetchLeads();
       fetchPitches();
+      fetchSavedViews();
       fetchAnalyticsData();
+      
+      const localPrefs = localStorage.getItem(`metric_prefs_${user.id}`);
+      if (localPrefs) {
+        try {
+          setPreferences({ ...DEFAULT_PREFS, ...JSON.parse(localPrefs) });
+        } catch (e) {}
+      }
     } else {
       setLeads([]);
       setPitches([]);
+      setSavedViews([]);
+      setPreferences(DEFAULT_PREFS);
       setAnalytics({ recentActivities: [], totalCalls: 0, connectedCalls: 0 });
       setLoading(false);
     }
   }, [user]);
+
+  const updatePreferences = (updates: Partial<MetricPreferences>) => {
+    if (!user) return;
+    const newPrefs = { ...preferences, ...updates };
+    setPreferences(newPrefs);
+    localStorage.setItem(`metric_prefs_${user.id}`, JSON.stringify(newPrefs));
+  };
 
   const fetchLeads = async () => {
     setLoading(true);
@@ -109,6 +155,20 @@ export function useMetricLeads() {
       setPitches(data || []);
     } catch (err: any) {
       console.error("Error fetching pitches:", err);
+    }
+  };
+
+  const fetchSavedViews = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("metric_saved_views")
+        .select("*")
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+      setSavedViews(data || []);
+    } catch (err: any) {
+      console.error("Error fetching saved views:", err);
     }
   };
 
@@ -194,6 +254,36 @@ export function useMetricLeads() {
       setLeads(leads.filter(l => l.id !== id));
     } catch (err: any) {
       console.error("Error deleting lead:", err);
+      throw err;
+    }
+  };
+
+  const bulkUpdateLeads = async (ids: string[], updates: Partial<MetricLead>) => {
+    try {
+      const { error } = await supabase
+        .from("metric_leads")
+        .update(updates)
+        .in("id", ids);
+
+      if (error) throw error;
+      setLeads(leads.map(l => ids.includes(l.id) ? { ...l, ...updates } : l));
+    } catch (err: any) {
+      console.error("Error bulk updating leads:", err);
+      throw err;
+    }
+  };
+
+  const bulkDeleteLeads = async (ids: string[]) => {
+    try {
+      const { error } = await supabase
+        .from("metric_leads")
+        .delete()
+        .in("id", ids);
+
+      if (error) throw error;
+      setLeads(leads.filter(l => !ids.includes(l.id)));
+    } catch (err: any) {
+      console.error("Error bulk deleting leads:", err);
       throw err;
     }
   };
@@ -299,24 +389,65 @@ export function useMetricLeads() {
     }
   };
 
+  const addSavedView = async (view: Partial<MetricSavedView>) => {
+    if (!user) return null;
+    try {
+      const { data, error } = await supabase
+        .from("metric_saved_views")
+        .insert([{ ...view, user_id: user.id }])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      setSavedViews([...savedViews, data]);
+      return data;
+    } catch (err) {
+      console.error("Error adding saved view:", err);
+      throw err;
+    }
+  };
+
+  const deleteSavedView = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from("metric_saved_views")
+        .delete()
+        .eq("id", id);
+        
+      if (error) throw error;
+      setSavedViews(savedViews.filter(v => v.id !== id));
+    } catch (err) {
+      console.error("Error deleting saved view:", err);
+      throw err;
+    }
+  };
+
   return {
     leads,
     pitches,
+    savedViews,
     analytics,
     loading,
     error,
     addLead,
     updateLead,
     deleteLead,
+    bulkUpdateLeads,
+    bulkDeleteLeads,
     fetchActivities,
     fetchRecentActivities,
     addActivity,
     addPitch,
     updatePitch,
     deletePitch,
+    addSavedView,
+    deleteSavedView,
+    preferences,
+    updatePreferences,
     refresh: () => {
       fetchLeads();
       fetchPitches();
+      fetchSavedViews();
       fetchAnalyticsData();
     }
   };
