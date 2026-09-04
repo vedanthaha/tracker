@@ -47,7 +47,7 @@ export default function Home() {
   
   const currentLayout = useMemo(() => {
     const customLayout = layouts.find(l => l.surface === "home");
-    if (customLayout) {
+    if (customLayout && customLayout.layout_spec && customLayout.layout_spec.root) {
       return customLayout.layout_spec;
     }
     return DEFAULT_HOME_LAYOUT;

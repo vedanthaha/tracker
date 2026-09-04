@@ -38,7 +38,7 @@ export function NotesSidebarWidget() {
             whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
             onClick={createNote}
             className="w-7 h-7 flex items-center justify-center rounded-lg"
-            style={{ background: "var(--accent)", color: "#0c0c0c" }}
+            style={{ background: "var(--accent)", color: "var(--background)" }}
           >
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
               <path d="M6 1v10M1 6h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -48,7 +48,7 @@ export function NotesSidebarWidget() {
 
         <div
           className="flex items-center gap-2 px-3 py-2 rounded-lg"
-          style={{ background: "rgba(240,237,232,0.05)", border: "1px solid var(--card-border)" }}
+          style={{ background: "color-mix(in srgb, var(--foreground) 5%, transparent)", border: "1px solid var(--card-border)" }}
         >
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ color: "var(--muted)", flexShrink: 0 }}>
             <circle cx="5" cy="5" r="4" stroke="currentColor" strokeWidth="1.4" />
@@ -74,7 +74,7 @@ export function NotesSidebarWidget() {
             onClick={() => setFilterCat(cat)}
             className="font-mono-data text-xs px-2 py-1 rounded-md transition-all duration-150"
             style={{
-              background: filterCat === cat ? "rgba(240,237,232,0.08)" : "transparent",
+              background: filterCat === cat ? "color-mix(in srgb, var(--foreground) 8%, transparent)" : "transparent",
               color: filterCat === cat
                 ? cat === "all" ? "var(--foreground)" : CAT_COLORS[cat as NoteCategory]
                 : "var(--muted)",
@@ -108,7 +108,7 @@ export function NotesSidebarWidget() {
               onClick={() => setSelectedId(note.id)}
               className="w-full text-left px-4 py-3.5"
               style={{
-                background: selectedId === note.id ? "rgba(240,237,232,0.05)" : "transparent",
+                background: selectedId === note.id ? "color-mix(in srgb, var(--foreground) 5%, transparent)" : "transparent",
                 borderBottom: "1px solid var(--card-border)",
                 borderLeft: selectedId === note.id ? `2px solid ${CAT_COLORS[note.category as NoteCategory]}` : "2px solid transparent",
                 display: "block",
@@ -117,7 +117,7 @@ export function NotesSidebarWidget() {
               <div className="flex items-start justify-between gap-2 mb-1">
                 <p
                   className="text-sm font-medium truncate leading-snug"
-                  style={{ color: selectedId === note.id ? "var(--foreground)" : "rgba(240,237,232,0.7)" }}
+                  style={{ color: selectedId === note.id ? "var(--foreground)" : "color-mix(in srgb, var(--foreground) 70%, transparent)" }}
                 >
                   {note.title || "Untitled"}
                 </p>
@@ -137,7 +137,7 @@ export function NotesSidebarWidget() {
                 >
                   {note.category}
                 </span>
-                <span className="font-mono-data text-xs" style={{ color: "rgba(240,237,232,0.2)" }}>
+                <span className="font-mono-data text-xs" style={{ color: "color-mix(in srgb, var(--foreground) 20%, transparent)" }}>
                   {formatDate(note.updatedAt)}
                 </span>
               </div>
@@ -173,7 +173,7 @@ export function NotesEditorWidget() {
             {/* Editor toolbar */}
             <div
               className="flex items-center gap-2 md:gap-3 px-4 md:px-6 py-3 md:py-4 flex-shrink-0 flex-wrap"
-              style={{ borderBottom: "1px solid var(--card-border)", background: "rgba(240,237,232,0.015)" }}
+              style={{ borderBottom: "1px solid var(--card-border)", background: "color-mix(in srgb, var(--foreground) 1%, transparent)" }}
             >
               <select
                 value={selectedNote.category}
@@ -186,7 +186,7 @@ export function NotesEditorWidget() {
                 }}
               >
                 {CATEGORY_OPTIONS.map((c) => (
-                  <option key={c} value={c} style={{ background: "#141414", color: "var(--foreground)" }}>
+                  <option key={c} value={c} style={{ background: "var(--surface-elevated)", color: "var(--foreground)" }}>
                     {c.charAt(0).toUpperCase() + c.slice(1)}
                   </option>
                 ))}
@@ -290,7 +290,7 @@ export function NotesEditorWidget() {
                 whileHover={{ scale: 1.04, opacity: 0.9 }} whileTap={{ scale: 0.96 }}
                 onClick={createNote}
                 className="mt-3 text-sm px-4 py-2 rounded-xl"
-                style={{ background: "var(--accent)", color: "#0c0c0c" }}
+                style={{ background: "var(--accent)", color: "var(--background)" }}
               >
                 Create a note
               </motion.button>

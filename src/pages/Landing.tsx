@@ -5,14 +5,14 @@ import { useApp } from "../context/AppContext";
 import BackgroundPixelStars from "../components/BackgroundPixelStars";
 import DotMatrixText from "../components/DotMatrixText";
 
-// ── Bento mini-components ──────────────────────────────────────────────────
+// -- Bento mini-components --------------------------------------------------
 
 function TasksDemo() {
   const items = [
-    { text: "Review Q3 strategy deck", cat: "rgba(240,237,232,0.5)", done: false },
-    { text: "Write newsletter draft", cat: "rgba(240,237,232,0.35)", done: false },
-    { text: "Morning run — 5 km", cat: "rgba(240,237,232,0.65)", done: false },
-    { text: "Refactor auth module", cat: "rgba(240,237,232,0.3)", done: false },
+    { text: "Review Q3 strategy deck", cat: "color-mix(in srgb, var(--foreground) 50%, transparent)", done: false },
+    { text: "Write newsletter draft", cat: "color-mix(in srgb, var(--foreground) 35%, transparent)", done: false },
+    { text: "Morning run - 5 km", cat: "color-mix(in srgb, var(--foreground) 65%, transparent)", done: false },
+    { text: "Refactor auth module", cat: "color-mix(in srgb, var(--foreground) 30%, transparent)", done: false },
   ];
   const [checked, setChecked] = useState([true, true, false, false]);
 
@@ -41,10 +41,10 @@ function TasksDemo() {
           <motion.div
             className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0"
             animate={{
-              borderColor: checked[i] ? "rgba(240,237,232,0.7)" : "rgba(240,237,232,0.18)",
-              background: checked[i] ? "rgba(240,237,232,0.08)" : "transparent",
+              borderColor: checked[i] ? "color-mix(in srgb, var(--foreground) 70%, transparent)" : "color-mix(in srgb, var(--foreground) 18%, transparent)",
+              background: checked[i] ? "color-mix(in srgb, var(--foreground) 8%, transparent)" : "transparent",
             }}
-            style={{ border: "1.5px solid rgba(240,237,232,0.18)", transition: "all 0.3s" }}
+            style={{ border: "1.5px solid color-mix(in srgb, var(--foreground) 18%, transparent)", transition: "all 0.3s" }}
           >
             <AnimatePresence>
               {checked[i] && (
@@ -52,7 +52,7 @@ function TasksDemo() {
                   width="8" height="8" viewBox="0 0 8 8"
                   initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0 }}
                 >
-                  <path d="M1 4L3 6L7 2" stroke="rgba(240,237,232,0.9)" strokeWidth="1.4" strokeLinecap="round" fill="none" />
+                  <path d="M1 4L3 6L7 2" stroke="color-mix(in srgb, var(--foreground) 90%, transparent)" strokeWidth="1.4" strokeLinecap="round" fill="none" />
                 </motion.svg>
               )}
             </AnimatePresence>
@@ -60,7 +60,7 @@ function TasksDemo() {
           <span
             className="text-xs flex-1 truncate"
             style={{
-              color: checked[i] ? "rgba(240,237,232,0.3)" : "rgba(240,237,232,0.78)",
+              color: checked[i] ? "color-mix(in srgb, var(--foreground) 30%, transparent)" : "color-mix(in srgb, var(--foreground) 78%, transparent)",
               textDecoration: checked[i] ? "line-through" : "none",
               transition: "all 0.3s",
             }}
@@ -75,7 +75,7 @@ function TasksDemo() {
 }
 
 function NotesDemo() {
-  const full = "Clear head today. The work ahead feels manageable — focus on the newsletter draft first.";
+  const full = "Clear head today. The work ahead feels manageable - focus on the newsletter draft first.";
   const [len, setLen] = useState(0);
 
   useEffect(() => {
@@ -95,16 +95,16 @@ function NotesDemo() {
     <div className="flex flex-col h-full justify-center">
       <div
         className="font-mono-data text-xs uppercase tracking-widest mb-2"
-        style={{ color: "rgba(240,237,232,0.22)" }}
+        style={{ color: "color-mix(in srgb, var(--foreground) 22%, transparent)" }}
       >
-        Morning pages — Sep 1
+        Morning pages - Sep 1
       </div>
-      <p className="text-sm leading-relaxed" style={{ color: "rgba(240,237,232,0.7)" }}>
+      <p className="text-sm leading-relaxed" style={{ color: "color-mix(in srgb, var(--foreground) 70%, transparent)" }}>
         {full.slice(0, len)}
         <motion.span
           animate={{ opacity: [1, 0, 1] }}
           transition={{ duration: 0.9, repeat: Infinity }}
-          style={{ color: "rgba(240,237,232,0.7)" }}
+          style={{ color: "color-mix(in srgb, var(--foreground) 70%, transparent)" }}
         >
           |
         </motion.span>
@@ -135,7 +135,7 @@ function GraphDemo() {
         const lit = hov === a || hov === b;
         return (
           <line key={i} x1={s.x} y1={s.y} x2={t.x} y2={t.y}
-            stroke={lit ? "rgba(212,168,83,0.55)" : "rgba(240,237,232,0.09)"}
+            stroke={lit ? "rgba(212,168,83,0.55)" : "color-mix(in srgb, var(--foreground) 9%, transparent)"}
             strokeWidth={lit ? 0.8 : 0.4}
             style={{ transition: "all 0.2s" }}
           />
@@ -160,8 +160,8 @@ function AnalyticsDemo() {
   const bars = [
     { h: 60, label: "M", c: "#d4a853" }, { h: 85, label: "T", c: "#d4a853" },
     { h: 45, label: "W", c: "#b48ee8" }, { h: 92, label: "T", c: "#6fcf8a" },
-    { h: 70, label: "F", c: "#d4a853" }, { h: 28, label: "S", c: "rgba(240,237,232,0.12)" },
-    { h: 15, label: "S", c: "rgba(240,237,232,0.12)" },
+    { h: 70, label: "F", c: "#d4a853" }, { h: 28, label: "S", c: "color-mix(in srgb, var(--foreground) 12%, transparent)" },
+    { h: 15, label: "S", c: "color-mix(in srgb, var(--foreground) 12%, transparent)" },
   ];
 
   return (
@@ -176,7 +176,7 @@ function AnalyticsDemo() {
             viewport={{ once: false }}
             transition={{ delay: 0.1 + i * 0.06, duration: 0.55, ease: [0.34, 1.56, 0.64, 1] }}
           />
-          <span className="font-mono-data" style={{ fontSize: 8, color: "rgba(240,237,232,0.22)" }}>{b.label}</span>
+          <span className="font-mono-data" style={{ fontSize: 8, color: "color-mix(in srgb, var(--foreground) 22%, transparent)" }}>{b.label}</span>
         </div>
       ))}
     </div>
@@ -202,10 +202,10 @@ function FocusDemo() {
     <div className="flex items-center justify-center gap-7 h-full">
       <div className="relative w-20 h-20">
         <svg width="80" height="80" viewBox="0 0 80 80">
-          <circle cx="40" cy="40" r={r} fill="none" stroke="rgba(240,237,232,0.05)" strokeWidth="3" />
+          <circle cx="40" cy="40" r={r} fill="none" stroke="color-mix(in srgb, var(--foreground) 5%, transparent)" strokeWidth="3" />
           <circle
             cx="40" cy="40" r={r}
-            fill="none" stroke="rgba(240,237,232,0.85)" strokeWidth="3" strokeLinecap="round"
+            fill="none" stroke="color-mix(in srgb, var(--foreground) 85%, transparent)" strokeWidth="3" strokeLinecap="round"
             strokeDasharray={circ}
             strokeDashoffset={circ * (1 - progress)}
             style={{ transform: "rotate(-90deg)", transformOrigin: "40px 40px", transition: "stroke-dashoffset 0.12s linear" }}
@@ -218,13 +218,13 @@ function FocusDemo() {
         </div>
       </div>
       <div>
-        <p className="font-mono-data text-xs uppercase tracking-widest mb-1" style={{ color: "rgba(240,237,232,0.55)" }}>
+        <p className="font-mono-data text-xs uppercase tracking-widest mb-1" style={{ color: "color-mix(in srgb, var(--foreground) 55%, transparent)" }}>
           Focus Session
         </p>
-        <p className="text-sm" style={{ color: "rgba(240,237,232,0.5)" }}>Deep work · 25 min</p>
+        <p className="text-sm" style={{ color: "color-mix(in srgb, var(--foreground) 50%, transparent)" }}>Deep work · 25 min</p>
         <div className="flex items-center gap-1.5 mt-2.5">
-          <span className="w-1.5 h-1.5 rounded-full" style={{ background: "rgba(240,237,232,0.7)" }} />
-          <span className="font-mono-data text-xs" style={{ color: "rgba(240,237,232,0.7)" }}>Active</span>
+          <span className="w-1.5 h-1.5 rounded-full" style={{ background: "color-mix(in srgb, var(--foreground) 70%, transparent)" }} />
+          <span className="font-mono-data text-xs" style={{ color: "color-mix(in srgb, var(--foreground) 70%, transparent)" }}>Active</span>
         </div>
       </div>
     </div>
@@ -233,10 +233,10 @@ function FocusDemo() {
 
 function CategoriesDemo() {
   const cats = [
-    { label: "Work", color: "rgba(240,237,232,0.85)", count: 8 },
-    { label: "Focus", color: "rgba(240,237,232,0.7)", count: 5 },
-    { label: "Health", color: "rgba(240,237,232,0.6)", count: 3 },
-    { label: "Personal", color: "rgba(240,237,232,0.5)", count: 6 },
+    { label: "Work", color: "color-mix(in srgb, var(--foreground) 85%, transparent)", count: 8 },
+    { label: "Focus", color: "color-mix(in srgb, var(--foreground) 70%, transparent)", count: 5 },
+    { label: "Health", color: "color-mix(in srgb, var(--foreground) 60%, transparent)", count: 3 },
+    { label: "Personal", color: "color-mix(in srgb, var(--foreground) 50%, transparent)", count: 6 },
   ];
   const [active, setActive] = useState(0);
 
@@ -257,14 +257,14 @@ function CategoriesDemo() {
           <div
             className="w-11 h-11 rounded-xl flex items-center justify-center font-mono-data text-sm font-semibold"
             style={{
-              background: "rgba(240,237,232,0.06)",
+              background: "color-mix(in srgb, var(--foreground) 6%, transparent)",
               color: cat.color,
-              border: "1px solid rgba(240,237,232,0.1)",
+              border: "1px solid color-mix(in srgb, var(--foreground) 10%, transparent)",
             }}
           >
             {cat.count}
           </div>
-          <span className="font-mono-data text-xs" style={{ color: active === i ? "rgba(240,237,232,0.75)" : "transparent" }}>
+          <span className="font-mono-data text-xs" style={{ color: active === i ? "color-mix(in srgb, var(--foreground) 75%, transparent)" : "transparent" }}>
             {cat.label}
           </span>
         </motion.div>
@@ -296,7 +296,7 @@ export default function Landing() {
       <nav
         className="sticky top-0 z-50 flex items-center justify-between px-8 py-4"
         style={{
-          background: "rgba(5,5,8,0.9)",
+          background: "color-mix(in srgb, var(--background) 90%, transparent)",
           backdropFilter: "blur(14px)",
           borderBottom: "1px solid var(--card-border)",
         }}
@@ -318,7 +318,7 @@ export default function Landing() {
           <button
             onClick={() => navigate("/signup")}
             className="text-sm px-4 py-2 rounded-lg font-medium transition-all duration-150 hover:opacity-85"
-            style={{ background: "var(--foreground)", color: "#0c0c0c" }}
+            style={{ background: "var(--foreground)", color: "var(--background)" }}
           >
             Get Started
           </button>
@@ -328,7 +328,7 @@ export default function Landing() {
       {/* Hero */}
       <section
         className="relative flex flex-col items-center justify-center text-center px-6 py-32 overflow-hidden"
-        style={{ minHeight: "calc(100vh - 65px)", background: "#050508" }}
+        style={{ minHeight: "calc(100vh - 65px)", background: "var(--background)" }}
       >
         {/* Pixel star field canvas */}
         <BackgroundPixelStars />
@@ -347,7 +347,7 @@ export default function Landing() {
         <div
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full pointer-events-none"
           style={{
-            background: "radial-gradient(circle, rgba(240,237,232,0.04) 0%, transparent 68%)",
+            background: "radial-gradient(circle, color-mix(in srgb, var(--foreground) 4%, transparent) 0%, transparent 68%)",
           }}
         />
 
@@ -371,11 +371,11 @@ export default function Landing() {
               dotSize={4}
               gap={2}
               activeColor="#f0ede8"
-              inactiveColor="rgba(240,237,232,0.04)"
+              inactiveColor="color-mix(in srgb, var(--foreground) 4%, transparent)"
               showInactive={true}
               fontFamily="Georgia, 'Times New Roman', serif"
               className="w-full h-full"
-              style={{ filter: "drop-shadow(0 0 28px rgba(240,237,232,0.25))" }}
+              style={{ filter: "drop-shadow(0 0 28px color-mix(in srgb, var(--foreground) 25%, transparent))" }}
             />
           </motion.div>
 
@@ -385,7 +385,7 @@ export default function Landing() {
             style={{ color: "var(--muted)" }}
           >
             The minimal productivity workspace for professionals who value focus.
-            Tasks, notes, and analytics — unified, beautiful, distraction-free.
+            Tasks, notes, and analytics - unified, beautiful, distraction-free.
           </motion.p>
 
           <motion.div
@@ -396,7 +396,7 @@ export default function Landing() {
               whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
               onClick={() => navigate("/signup")}
               className="px-7 py-3.5 rounded-xl font-medium text-sm transition-all duration-150"
-              style={{ background: "var(--foreground)", color: "#0c0c0c" }}
+              style={{ background: "var(--foreground)", color: "var(--background)" }}
             >
               Start for free
             </motion.button>
@@ -450,7 +450,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Features — Bento Grid */}
+      {/* Features - Bento Grid */}
       <section className="px-6 py-24">
         <div className="max-w-6xl mx-auto">
           <motion.div
@@ -471,13 +471,13 @@ export default function Landing() {
             style={{ gridAutoRows: "200px" }}
           >
 
-            {/* 1 · Tasks — tall 2×2 */}
+            {/* 1 · Tasks - tall 2x2 */}
             <motion.div
               className="md:col-span-2 md:row-span-2 rounded-2xl p-6 flex flex-col overflow-hidden"
               style={{ background: "var(--card)", border: "1px solid var(--card-border)" }}
               initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }} transition={{ duration: 0.38 }}
-              whileHover={{ scale: 1.015, borderColor: "rgba(240,237,232,0.14)", transition: { duration: 0.22 } }}
+              whileHover={{ scale: 1.015, borderColor: "color-mix(in srgb, var(--foreground) 14%, transparent)", transition: { duration: 0.22 } }}
             >
               <div className="flex-1 overflow-hidden">
                 <TasksDemo />
@@ -490,7 +490,7 @@ export default function Landing() {
               </div>
             </motion.div>
 
-            {/* 2 · Notes — standard 2×1 */}
+            {/* 2 · Notes - standard 2x1 */}
             <motion.div
               className="md:col-span-2 rounded-2xl p-6 flex flex-col overflow-hidden"
               style={{ background: "var(--card)", border: "1px solid var(--card-border)" }}
@@ -507,13 +507,13 @@ export default function Landing() {
               </div>
             </motion.div>
 
-            {/* 3 · Knowledge Graph — tall 2×2 */}
+            {/* 3 · Knowledge Graph - tall 2x2 */}
             <motion.div
               className="md:col-span-2 md:row-span-2 rounded-2xl p-5 flex flex-col overflow-hidden"
               style={{ background: "var(--card)", border: "1px solid var(--card-border)" }}
               initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }} transition={{ delay: 0.14, duration: 0.38 }}
-              whileHover={{ scale: 1.015, boxShadow: "0 20px 48px rgba(0,0,0,0.4)", transition: { duration: 0.22 } }}
+              whileHover={{ scale: 1.015, boxShadow: "0 20px 48px color-mix(in srgb, var(--background) 40%, transparent)", transition: { duration: 0.22 } }}
             >
               <div className="flex-1">
                 <GraphDemo />
@@ -539,7 +539,7 @@ export default function Landing() {
               </div>
             </motion.div>
 
-            {/* 4 · Analytics — standard 2×1 */}
+            {/* 4 · Analytics - standard 2x1 */}
             <motion.div
               className="md:col-span-2 rounded-2xl p-6 flex flex-col overflow-hidden"
               style={{ background: "var(--card)", border: "1px solid var(--card-border)" }}
@@ -556,7 +556,7 @@ export default function Landing() {
               </div>
             </motion.div>
 
-            {/* 5 · Focus Mode — wide 3×1 */}
+            {/* 5 · Focus Mode - wide 3x1 */}
             <motion.div
               className="md:col-span-3 rounded-2xl p-6 flex flex-col overflow-hidden"
               style={{ background: "var(--card)", border: "1px solid var(--card-border)" }}
@@ -575,7 +575,7 @@ export default function Landing() {
               </div>
             </motion.div>
 
-            {/* 6 · Categories — wide 3×1 */}
+            {/* 6 · Categories - wide 3x1 */}
             <motion.div
               className="md:col-span-3 rounded-2xl p-6 flex flex-col overflow-hidden"
               style={{ background: "var(--card)", border: "1px solid var(--card-border)" }}
@@ -589,7 +589,7 @@ export default function Landing() {
               <div>
                 <h3 className="font-display text-xl" style={{ color: "var(--foreground)" }}>Unified Workspace</h3>
                 <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>
-                  Work, focus, health, personal — one view, zero context switching.
+                  Work, focus, health, personal - one view, zero context switching.
                 </p>
               </div>
             </motion.div>
@@ -607,14 +607,14 @@ export default function Landing() {
           {/* Browser chrome */}
           <div
             className="flex items-center gap-2 px-4 py-3"
-            style={{ borderBottom: "1px solid var(--card-border)", background: "rgba(240,237,232,0.03)" }}
+            style={{ borderBottom: "1px solid var(--card-border)", background: "color-mix(in srgb, var(--foreground) 3%, transparent)" }}
           >
-            <span className="w-3 h-3 rounded-full" style={{ background: "rgba(240,237,232,0.15)" }} />
-            <span className="w-3 h-3 rounded-full" style={{ background: "rgba(240,237,232,0.25)" }} />
-            <span className="w-3 h-3 rounded-full" style={{ background: "rgba(240,237,232,0.35)" }} />
+            <span className="w-3 h-3 rounded-full" style={{ background: "color-mix(in srgb, var(--foreground) 15%, transparent)" }} />
+            <span className="w-3 h-3 rounded-full" style={{ background: "color-mix(in srgb, var(--foreground) 25%, transparent)" }} />
+            <span className="w-3 h-3 rounded-full" style={{ background: "color-mix(in srgb, var(--foreground) 35%, transparent)" }} />
             <span
               className="ml-4 flex-1 max-w-xs rounded-md px-3 py-1 text-xs font-mono-data text-center"
-              style={{ background: "rgba(240,237,232,0.05)", color: "var(--muted)" }}
+              style={{ background: "color-mix(in srgb, var(--foreground) 5%, transparent)", color: "var(--muted)" }}
             >
               app.dailys.work/dashboard
             </span>
@@ -637,7 +637,7 @@ export default function Landing() {
                   key={item}
                   className="px-2 py-1.5 rounded-md text-xs"
                   style={{
-                    background: i === 0 ? "rgba(240,237,232,0.07)" : "transparent",
+                    background: i === 0 ? "color-mix(in srgb, var(--foreground) 7%, transparent)" : "transparent",
                     color: i === 0 ? "var(--foreground)" : "var(--muted)",
                   }}
                 >
@@ -655,7 +655,7 @@ export default function Landing() {
                 </div>
                 <div
                   className="text-xs px-3 py-1.5 rounded-lg font-mono-data"
-                  style={{ background: "rgba(240,237,232,0.06)", color: "rgba(240,237,232,0.55)", border: "1px solid rgba(240,237,232,0.1)" }}
+                  style={{ background: "color-mix(in srgb, var(--foreground) 6%, transparent)", color: "color-mix(in srgb, var(--foreground) 55%, transparent)", border: "1px solid color-mix(in srgb, var(--foreground) 10%, transparent)" }}
                 >
                   7 day streak
                 </div>
@@ -665,7 +665,7 @@ export default function Landing() {
                   <div
                     key={l}
                     className="p-3 rounded-lg"
-                    style={{ background: "rgba(240,237,232,0.04)", border: "1px solid var(--card-border)" }}
+                    style={{ background: "color-mix(in srgb, var(--foreground) 4%, transparent)", border: "1px solid var(--card-border)" }}
                   >
                     <p className="font-display text-xl" style={{ color: "var(--foreground)" }}>{v}</p>
                     <p className="font-mono-data text-xs mt-0.5" style={{ color: "var(--muted)" }}>{l}</p>
@@ -706,7 +706,7 @@ export default function Landing() {
           whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
           onClick={() => navigate("/signup")}
           className="px-8 py-4 rounded-xl text-base font-medium"
-          style={{ background: "var(--foreground)", color: "#0c0c0c" }}
+          style={{ background: "var(--foreground)", color: "var(--background)" }}
         >
           Create free account →
         </motion.button>
@@ -723,7 +723,7 @@ export default function Landing() {
           </div>
         </div>
         <p className="font-mono-data text-xs" style={{ color: "var(--muted)" }}>
-          © 2026 Dailys. All rights reserved.
+          (c) 2026 Dailys. All rights reserved.
         </p>
         <div className="hidden md:flex items-center gap-6">
           {["Privacy", "Terms", "Contact"].map((item) => (

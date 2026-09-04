@@ -35,3 +35,12 @@ export interface ThemeDefinition {
   shape: ThemeShape;
   density: "compact" | "comfortable" | "spacious";
 }
+
+export interface CustomTheme {
+  id: string;
+  user_id: string;
+  name: string;
+  theme_json: Omit<ThemeDefinition, "id" | "name">;
+  created_at: string;
+  updated_at: string;
+}

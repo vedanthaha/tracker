@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useRef, ReactNode, useEffect } from "react";
+﻿import { createContext, useContext, useState, useRef, ReactNode, useEffect } from "react";
 import { NoteCategory, useApp } from "./AppContext";
 
 interface NotesContextType {

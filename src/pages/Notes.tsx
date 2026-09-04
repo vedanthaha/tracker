@@ -1,6 +1,30 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApp, type NoteCategory } from "../context/AppContext";
+import NotesEditor from "../components/NotesEditor";
+
+function extractTextFromJSON(node: any): string {
+  if (typeof node === 'string') {
+    if (node.startsWith('{')) {
+      try {
+        node = JSON.parse(node);
+      } catch (e) {
+        return node;
+      }
+    } else {
+      return node;
+    }
+  }
+  if (!node || typeof node !== 'object') return "";
+  if (node.type === 'text') return node.text || "";
+  if (node.type === 'paragraph' || node.type === 'heading') {
+    return (node.content ? node.content.map(extractTextFromJSON).join("") : "") + "\n";
+  }
+  if (Array.isArray(node.content)) {
+    return node.content.map(extractTextFromJSON).join("");
+  }
+  return "";
+}
 
 const CAT_COLORS: Record<NoteCategory, string> = {
   work: "#d4a853",
@@ -23,7 +47,8 @@ export default function Notes() {
 
   const filtered = notes.filter((n) => {
     const matchCat = filterCat === "all" || n.category === filterCat;
-    const matchSearch = !search || n.title.toLowerCase().includes(search.toLowerCase()) || n.content.toLowerCase().includes(search.toLowerCase());
+    const plainText = extractTextFromJSON(n.content);
+    const matchSearch = !search || n.title.toLowerCase().includes(search.toLowerCase()) || plainText.toLowerCase().includes(search.toLowerCase());
     return matchCat && matchSearch;
   }).sort((a, b) => {
     if (a.pinned && !b.pinned) return -1;
@@ -37,7 +62,7 @@ export default function Notes() {
     }
   }, [filtered, selectedId]);
 
-  const handleChange = (field: "title" | "content", value: string) => {
+  const handleChange = (field: "title" | "content", value: any) => {
     if (!selectedId) return;
     updateNote(selectedId, { [field]: value });
     setSaved(false);
@@ -120,7 +145,7 @@ export default function Notes() {
       style={{ color: "var(--foreground)", "--left-width": `${leftWidth}px` } as React.CSSProperties}
     >
 
-      {/* Left panel — notes list */}
+      {/* Left panel - notes list */}
       <div
         className="flex flex-col flex-shrink-0 w-full md:w-[var(--left-width)] h-1/3 md:h-full border-b md:border-b-0"
         style={{ borderColor: "var(--card-border)", background: "var(--card)" }}
@@ -137,7 +162,7 @@ export default function Notes() {
               whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
               onClick={createNote}
               className="w-7 h-7 flex items-center justify-center rounded-lg"
-              style={{ background: "var(--accent)", color: "#0c0c0c" }}
+              style={{ background: "var(--accent)", color: "var(--background)" }}
             >
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                 <path d="M6 1v10M1 6h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -147,7 +172,7 @@ export default function Notes() {
 
           <div
             className="flex items-center gap-2 px-3 py-2 rounded-lg"
-            style={{ background: "rgba(240,237,232,0.05)", border: "1px solid var(--card-border)" }}
+            style={{ background: "color-mix(in srgb, var(--foreground) 5%, transparent)", border: "1px solid var(--card-border)" }}
           >
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ color: "var(--muted)", flexShrink: 0 }}>
               <circle cx="5" cy="5" r="4" stroke="currentColor" strokeWidth="1.4" />
@@ -174,7 +199,7 @@ export default function Notes() {
               onClick={() => setFilterCat(cat)}
               className="font-mono-data text-xs px-2 py-1 rounded-md transition-all duration-150"
               style={{
-                background: filterCat === cat ? "rgba(240,237,232,0.08)" : "transparent",
+                background: filterCat === cat ? "color-mix(in srgb, var(--foreground) 8%, transparent)" : "transparent",
                 color: filterCat === cat
                   ? cat === "all" ? "var(--foreground)" : CAT_COLORS[cat as NoteCategory]
                   : "var(--muted)",
@@ -208,7 +233,7 @@ export default function Notes() {
                 onClick={() => setSelectedId(note.id)}
                 className="w-full text-left px-4 py-3.5"
                 style={{
-                  background: selectedId === note.id ? "rgba(240,237,232,0.05)" : "transparent",
+                  background: selectedId === note.id ? "color-mix(in srgb, var(--foreground) 5%, transparent)" : "transparent",
                   borderBottom: "1px solid var(--card-border)",
                   borderLeft: selectedId === note.id ? `2px solid ${CAT_COLORS[note.category]}` : "2px solid transparent",
                   display: "block",
@@ -217,14 +242,14 @@ export default function Notes() {
                 <div className="flex items-start justify-between gap-2 mb-1">
                   <p
                     className="text-sm font-medium truncate leading-snug"
-                    style={{ color: selectedId === note.id ? "var(--foreground)" : "rgba(240,237,232,0.7)" }}
+                    style={{ color: selectedId === note.id ? "var(--foreground)" : "color-mix(in srgb, var(--foreground) 70%, transparent)" }}
                   >
                     {note.title || "Untitled"}
                   </p>
                   {note.pinned && <span className="text-xs flex-shrink-0" style={{ color: "var(--accent)" }}>★</span>}
                 </div>
                 <p className="text-xs line-clamp-2 leading-relaxed mb-1.5" style={{ color: "var(--muted)" }}>
-                  {note.content || "Empty note"}
+                  {extractTextFromJSON(note.content).trim() || "Empty note"}
                 </p>
                 <div className="flex items-center gap-2">
                   <span
@@ -237,7 +262,7 @@ export default function Notes() {
                   >
                     {note.category}
                   </span>
-                  <span className="font-mono-data text-xs" style={{ color: "rgba(240,237,232,0.2)" }}>
+                  <span className="font-mono-data text-xs" style={{ color: "color-mix(in srgb, var(--foreground) 20%, transparent)" }}>
                     {formatDate(note.updatedAt)}
                   </span>
                 </div>
@@ -253,17 +278,17 @@ export default function Notes() {
         onPointerDown={startDrag}
         style={{ 
           borderRight: "1px solid var(--card-border)",
-          background: isDragging ? "rgba(240,237,232,0.1)" : "transparent",
+          background: isDragging ? "color-mix(in srgb, var(--foreground) 10%, transparent)" : "transparent",
         }}
         onMouseEnter={(e) => {
-          if (!isDragging) e.currentTarget.style.background = "rgba(240,237,232,0.06)";
+          if (!isDragging) e.currentTarget.style.background = "color-mix(in srgb, var(--foreground) 6%, transparent)";
         }}
         onMouseLeave={(e) => {
           if (!isDragging) e.currentTarget.style.background = "transparent";
         }}
       />
 
-      {/* Right panel — editor */}
+      {/* Right panel - editor */}
       <AnimatePresence mode="wait" initial={false}>
         {selectedNote ? (
           <motion.div
@@ -277,7 +302,7 @@ export default function Notes() {
             {/* Editor toolbar */}
             <div
               className="flex items-center gap-2 md:gap-3 px-4 md:px-6 py-3 md:py-4 flex-shrink-0 flex-wrap"
-              style={{ borderBottom: "1px solid var(--card-border)", background: "rgba(240,237,232,0.015)" }}
+              style={{ borderBottom: "1px solid var(--card-border)", background: "color-mix(in srgb, var(--foreground) 1%, transparent)" }}
             >
               <select
                 value={selectedNote.category}
@@ -290,7 +315,7 @@ export default function Notes() {
                 }}
               >
                 {CATEGORY_OPTIONS.map((c) => (
-                  <option key={c} value={c} style={{ background: "#141414", color: "var(--foreground)" }}>
+                  <option key={c} value={c} style={{ background: "var(--surface-elevated)", color: "var(--foreground)" }}>
                     {c.charAt(0).toUpperCase() + c.slice(1)}
                   </option>
                 ))}
@@ -346,26 +371,23 @@ export default function Notes() {
             </div>
 
             {/* Editor body */}
-            <div className="flex-1 overflow-y-auto px-6 md:px-12 py-6 md:py-8">
-              <input
-                className="w-full font-display text-3xl md:text-4xl bg-transparent border-none outline-none mb-4 leading-tight"
-                style={{ color: "var(--foreground)", fontFamily: "Instrument Serif, serif" }}
-                placeholder="Title"
-                value={selectedNote.title}
-                onChange={(e) => handleChange("title", e.target.value)}
-              />
-              <textarea
-                className="w-full bg-transparent border-none outline-none resize-none text-sm leading-loose"
-                style={{
-                  color: "var(--foreground)",
-                  fontFamily: "Inter, sans-serif",
-                  minHeight: "calc(100vh - 280px)",
-                  caretColor: "var(--accent)",
-                }}
-                placeholder="Start writing..."
-                value={selectedNote.content}
-                onChange={(e) => handleChange("content", e.target.value)}
-              />
+            <div className="flex-1 overflow-hidden flex flex-col">
+              <div className="px-6 md:px-12 pt-6 md:pt-8 flex-shrink-0">
+                <input
+                  className="w-full font-display text-3xl md:text-4xl bg-transparent border-none outline-none mb-2 leading-tight"
+                  style={{ color: "var(--foreground)", fontFamily: "var(--font-display, 'Instrument Serif', serif)" }}
+                  placeholder="Title"
+                  value={selectedNote.title}
+                  onChange={(e) => handleChange("title", e.target.value)}
+                />
+              </div>
+              <div className="flex-1 overflow-hidden">
+                <NotesEditor
+                  content={selectedNote.content}
+                  onChange={(content) => handleChange("content", content)}
+                  noteId={selectedNote.id?.toString()}
+                />
+              </div>
             </div>
 
             {/* Word count footer */}
@@ -374,10 +396,10 @@ export default function Notes() {
               style={{ borderTop: "1px solid var(--card-border)" }}
             >
               <span className="font-mono-data text-xs" style={{ color: "var(--muted)" }}>
-                {selectedNote.content.split(/\s+/).filter(Boolean).length} words
+                {extractTextFromJSON(selectedNote.content).trim().split(/\s+/).filter(Boolean).length} words
               </span>
               <span className="font-mono-data text-xs" style={{ color: "var(--muted)" }}>
-                {selectedNote.content.length} chars
+                {extractTextFromJSON(selectedNote.content).trim().length} chars
               </span>
             </div>
           </motion.div>
@@ -395,7 +417,7 @@ export default function Notes() {
                 whileHover={{ scale: 1.04, opacity: 0.9 }} whileTap={{ scale: 0.96 }}
                 onClick={createNote}
                 className="mt-3 text-sm px-4 py-2 rounded-xl"
-                style={{ background: "var(--accent)", color: "#0c0c0c" }}
+                style={{ background: "var(--accent)", color: "var(--background)" }}
               >
                 Create a note
               </motion.button>

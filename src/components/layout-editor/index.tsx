@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { LayoutSpec, WidgetNode } from "../../lib/design/LayoutSpec";
+import { LayoutSpec, WidgetNode, LayoutNode, CanvasContainer } from "../../lib/design/LayoutSpec";
 import { useLayoutEditor, LayoutEditorProvider } from "./LayoutEditorContext";
 import { EditorToolbar } from "./EditorToolbar";
 import { WidgetPicker } from "./WidgetPicker";
@@ -64,7 +64,7 @@ function LayoutEditorInner({ spec, defaultSpec, onSave }: LayoutEditorProps) {
       });
     }
     const node = findNode(currentSpec.root, event.active.id as string);
-    if (node && node.type === "widget") {
+    if (node && node.type === "widget" && node.placement) {
       setDragPreviewPlacement(node.placement);
     }
   };
@@ -73,7 +73,7 @@ function LayoutEditorInner({ spec, defaultSpec, onSave }: LayoutEditorProps) {
     if (!canvasRef.current || !activeId) return;
     
     const node = findNode(currentSpec.root, activeId) as WidgetNode;
-    if (!node || node.type !== "widget") return;
+    if (!node || node.type !== "widget" || !node.placement) return;
 
     const { delta } = event;
     const canvasRect = canvasRef.current.getBoundingClientRect();
@@ -124,9 +124,10 @@ function LayoutEditorInner({ spec, defaultSpec, onSave }: LayoutEditorProps) {
 
   const activeNode = activeId ? findNode(currentSpec.root, activeId) : null;
   const isCanvas = currentSpec.root.type === "canvas";
-  const columns = isCanvas ? (currentSpec.root as any).columns : 12;
-  const rowHeight = isCanvas ? (currentSpec.root as any).rowHeight : 40;
-  const gap = isCanvas ? ((currentSpec.root as any).gap || 16) : 16;
+  const canvasRoot = currentSpec.root as CanvasContainer;
+  const columns = isCanvas ? canvasRoot.columns : 12;
+  const rowHeight = isCanvas ? canvasRoot.rowHeight : 40;
+  const gap = isCanvas ? (canvasRoot.gap || 16) : 16;
 
   return (
     <DndContext
@@ -152,7 +153,7 @@ function LayoutEditorInner({ spec, defaultSpec, onSave }: LayoutEditorProps) {
               backgroundPosition: `0 0, 0 0`
             }}
           >
-            {isCanvas && (currentSpec.root as any).children.map((child: any, i: number) => (
+            {isCanvas && currentSpec.root.type === "canvas" && currentSpec.root.children.map((child: LayoutNode, i: number) => (
                <React.Fragment key={child.id || i}>
                   <EditableNodeRenderer node={child} />
                </React.Fragment>

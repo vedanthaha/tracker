@@ -22,7 +22,7 @@ export interface Task {
 export interface Note {
   id: number;
   title: string;
-  content: string;
+  content: any;
   category: NoteCategory;
   createdAt: string;
   updatedAt: string;
@@ -72,7 +72,7 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | null>(null);
 
-// ── DB row ↔ frontend type mappers ────────────────────────────
+// -- DB row <-> frontend type mappers ----------------------------
 
 function mapTask(row: Record<string, unknown>): Task {
   return {
@@ -89,10 +89,20 @@ function mapTask(row: Record<string, unknown>): Task {
 }
 
 function mapNote(row: Record<string, unknown>): Note {
+  // Handle case where content might come back as parsed JSON object or string
+  let content = row.content;
+  if (typeof content === 'string' && content.startsWith('{')) {
+    try {
+      content = JSON.parse(content);
+    } catch (e) {
+      // ignore
+    }
+  }
+
   return {
     id: row.id as number,
     title: row.title as string,
-    content: row.content as string,
+    content: content,
     category: row.category as NoteCategory,
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
@@ -185,7 +195,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, [loadUserData]);
 
-  // ── Auth ──────────────────────────────────────────────────────
+  // -- Auth ------------------------------------------------------
 
   const login = async (email: string, password: string): Promise<{ error?: string }> => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -248,7 +258,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
   };
 
-  // ── Profile ───────────────────────────────────────────────────
+  // -- Profile ---------------------------------------------------
 
   const updateProfile = async (updates: { name?: string; bio?: string }): Promise<{ error?: string }> => {
     if (!user) return { error: "Not logged in" };
@@ -276,7 +286,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return { url };
   };
 
-  // ── Tasks (optimistic + DB sync) ──────────────────────────────
+  // -- Tasks (optimistic + DB sync) ------------------------------
 
   const addTask = (t: Omit<Task, "id" | "createdAt">) => {
     if (!user) return;
@@ -319,7 +329,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       .then(({ error }) => { if (error) console.error("deleteTask sync:", error.message); });
   };
 
-  // ── Notes (optimistic + DB sync) ─────────────────────────────
+  // -- Notes (optimistic + DB sync) -----------------------------
 
   const addNote = (n: Omit<Note, "id" | "createdAt" | "updatedAt">) => {
     if (!user) return;

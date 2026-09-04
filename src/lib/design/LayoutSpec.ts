@@ -1,4 +1,4 @@
-export type LayoutNodeType = "grid" | "stack" | "widget";
+export type LayoutNodeType = "grid" | "stack" | "widget" | "canvas";
 
 export interface BaseLayoutNode {
   type: LayoutNodeType;
@@ -19,14 +19,23 @@ export interface StackContainer extends BaseLayoutNode {
   children: LayoutNode[];
 }
 
+export interface CanvasContainer extends BaseLayoutNode {
+  type: "canvas";
+  columns: number;
+  rowHeight: number;
+  gap?: number;
+  children: LayoutNode[];
+}
+
 export interface WidgetNode extends BaseLayoutNode {
   type: "widget";
   widgetId: string;
   props?: Record<string, any>;
   span?: number; // for grid spanning
+  placement?: { column: number; row: number; columnSpan: number; rowSpan: number };
 }
 
-export type LayoutNode = GridContainer | StackContainer | WidgetNode;
+export type LayoutNode = GridContainer | StackContainer | WidgetNode | CanvasContainer;
 
 export interface LayoutSpec {
   version: number;

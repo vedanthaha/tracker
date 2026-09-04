@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+﻿import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApp } from "../context/AppContext";
 import { useNavigate } from "react-router";
@@ -68,7 +68,7 @@ export default function Profile() {
             className="text-sm px-4 py-2 rounded-lg transition-all"
             style={{ color: "var(--muted)", border: "1px solid var(--card-border)", background: "var(--card)" }}
           >
-            ← Back
+            â† Back
           </motion.button>
         </motion.div>
 
@@ -96,8 +96,8 @@ export default function Profile() {
                 animate={{ scale: dragOver ? 1.04 : 1 }}
                 className="w-24 h-24 rounded-2xl overflow-hidden relative"
                 style={{
-                  border: dragOver ? "1.5px solid rgba(240,237,232,0.4)" : "1.5px solid var(--card-border)",
-                  background: "rgba(240,237,232,0.05)",
+                  border: dragOver ? "1.5px solid color-mix(in srgb, var(--foreground) 40%, transparent)" : "1.5px solid var(--card-border)",
+                  background: "color-mix(in srgb, var(--foreground) 5%, transparent)",
                 }}
               >
                 {user?.avatarUrl ? (
@@ -114,7 +114,7 @@ export default function Profile() {
                 {/* Hover overlay */}
                 <div
                   className="absolute inset-0 flex flex-col items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                  style={{ background: "rgba(0,0,0,0.65)" }}
+                  style={{ background: "color-mix(in srgb, var(--background) 65%, transparent)" }}
                 >
                   {avatarUploading ? (
                     <svg className="animate-spin" width="18" height="18" viewBox="0 0 18 18" fill="none">
@@ -142,7 +142,7 @@ export default function Profile() {
 
             {/* Name + email info */}
             <div className="flex-1 min-w-0 pt-1 w-full">
-              <p className="font-display text-2xl mb-0.5 truncate" style={{ color: "var(--foreground)" }}>{user?.name || "—"}</p>
+              <p className="font-display text-2xl mb-0.5 truncate" style={{ color: "var(--foreground)" }}>{user?.name || "-"}</p>
               <p className="text-sm mb-4" style={{ color: "var(--muted)" }}>{user?.email}</p>
               <div className="flex justify-center md:justify-start gap-4 md:gap-5 w-full">
                 {[
@@ -192,8 +192,8 @@ export default function Profile() {
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Your name"
                 className="w-full px-4 py-3 rounded-xl text-sm outline-none transition-all duration-150"
-                style={{ background: "rgba(240,237,232,0.04)", border: "1px solid var(--card-border)", color: "var(--foreground)" }}
-                onFocus={(e) => (e.target.style.borderColor = "rgba(240,237,232,0.2)")}
+                style={{ background: "color-mix(in srgb, var(--foreground) 4%, transparent)", border: "1px solid var(--card-border)", color: "var(--foreground)" }}
+                onFocus={(e) => (e.target.style.borderColor = "color-mix(in srgb, var(--foreground) 20%, transparent)")}
                 onBlur={(e) => (e.target.style.borderColor = "var(--card-border)")}
               />
             </div>
@@ -205,11 +205,11 @@ export default function Profile() {
               <textarea
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
-                placeholder="A short bio…"
+                placeholder="A short bio..."
                 rows={3}
                 className="w-full px-4 py-3 rounded-xl text-sm outline-none transition-all duration-150 resize-none"
-                style={{ background: "rgba(240,237,232,0.04)", border: "1px solid var(--card-border)", color: "var(--foreground)" }}
-                onFocus={(e) => (e.target.style.borderColor = "rgba(240,237,232,0.2)")}
+                style={{ background: "color-mix(in srgb, var(--foreground) 4%, transparent)", border: "1px solid var(--card-border)", color: "var(--foreground)" }}
+                onFocus={(e) => (e.target.style.borderColor = "color-mix(in srgb, var(--foreground) 20%, transparent)")}
                 onBlur={(e) => (e.target.style.borderColor = "var(--card-border)")}
               />
             </div>
@@ -223,7 +223,7 @@ export default function Profile() {
                 value={user?.email ?? ""}
                 disabled
                 className="w-full px-4 py-3 rounded-xl text-sm"
-                style={{ background: "rgba(240,237,232,0.02)", border: "1px solid var(--card-border)", color: "var(--muted)", cursor: "not-allowed" }}
+                style={{ background: "color-mix(in srgb, var(--foreground) 2%, transparent)", border: "1px solid var(--card-border)", color: "var(--muted)", cursor: "not-allowed" }}
               />
             </div>
           </div>
@@ -235,8 +235,8 @@ export default function Profile() {
               disabled={saving}
               className="px-6 py-2.5 rounded-xl font-medium text-sm transition-all duration-150 flex items-center gap-2"
               style={{
-                background: saving ? "rgba(240,237,232,0.1)" : "var(--foreground)",
-                color: saving ? "var(--muted)" : "#0c0c0c",
+                background: saving ? "color-mix(in srgb, var(--foreground) 10%, transparent)" : "var(--foreground)",
+                color: saving ? "var(--muted)" : "var(--background)",
               }}
             >
               {saving && (
@@ -244,7 +244,7 @@ export default function Profile() {
                   <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" strokeWidth="1.5" strokeDasharray="9 22" />
                 </svg>
               )}
-              {saving ? "Saving…" : "Save changes"}
+              {saving ? "Saving..." : "Save changes"}
             </motion.button>
 
             <AnimatePresence>
@@ -252,7 +252,7 @@ export default function Profile() {
                 <motion.span
                   initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}
                   className="text-sm"
-                  style={{ color: saveMsg.startsWith("Error") ? "rgba(255,100,100,0.9)" : "rgba(240,237,232,0.55)" }}
+                  style={{ color: saveMsg.startsWith("Error") ? "rgba(255,100,100,0.9)" : "color-mix(in srgb, var(--foreground) 55%, transparent)" }}
                 >
                   {saveMsg}
                 </motion.span>

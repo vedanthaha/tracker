@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+﻿import { useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router";
 import { useApp, Priority, TaskCategory } from "../../context/AppContext";
@@ -21,7 +21,7 @@ const CAT_LABELS: Record<TaskCategory, string> = {
 const PRIORITY_COLORS: Record<Priority, string> = {
   high: "#e07070",
   medium: "#d4a853",
-  low: "rgba(240,237,232,0.2)",
+  low: "color-mix(in srgb, var(--foreground) 20%, transparent)",
 };
 
 function ProgressRing({ value, max, size = 56 }: { value: number; max: number; size?: number }) {
@@ -30,7 +30,7 @@ function ProgressRing({ value, max, size = 56 }: { value: number; max: number; s
   const offset = max === 0 ? circumference : circumference - (value / max) * circumference;
   return (
     <svg width={size} height={size} className="progress-ring">
-      <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="rgba(240,237,232,0.07)" strokeWidth="2.5" />
+      <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="color-mix(in srgb, var(--foreground) 7%, transparent)" strokeWidth="2.5" />
       <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="var(--green)" strokeWidth="2.5"
         strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round"
         style={{ transition: "stroke-dashoffset 0.5s ease" }} />
@@ -54,7 +54,7 @@ export function TaskHeaderWidget() {
         whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
         onClick={() => setShowModal(true)}
         className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium"
-        style={{ background: "var(--accent)", color: "#0c0c0c" }}
+        style={{ background: "var(--accent)", color: "var(--background)" }}
       >
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
           <path d="M7 1v12M1 7h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -119,7 +119,7 @@ export function TaskFiltersWidget() {
             onClick={() => setActiveFilter(f)}
             className="font-mono-data text-xs px-3 py-1.5 rounded-md tracking-wide uppercase transition-all duration-150"
             style={{
-              background: activeFilter === f ? "rgba(240,237,232,0.08)" : "transparent",
+              background: activeFilter === f ? "color-mix(in srgb, var(--foreground) 8%, transparent)" : "transparent",
               color: activeFilter === f ? "var(--foreground)" : "var(--muted)",
               border: activeFilter === f ? "1px solid var(--card-border)" : "1px solid transparent",
             }}
@@ -138,7 +138,7 @@ export function TaskFiltersWidget() {
             onClick={() => setActivePriority(p)}
             className="flex items-center gap-1.5 font-mono-data text-xs px-2.5 py-1.5 rounded-md transition-all duration-150"
             style={{
-              background: activePriority === p ? "rgba(240,237,232,0.08)" : "transparent",
+              background: activePriority === p ? "color-mix(in srgb, var(--foreground) 8%, transparent)" : "transparent",
               color: activePriority === p ? "var(--foreground)" : "var(--muted)",
               border: activePriority === p ? "1px solid var(--card-border)" : "1px solid transparent",
             }}
@@ -155,18 +155,18 @@ export function TaskFiltersWidget() {
         value={sortBy}
         onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
         className="font-mono-data text-xs px-2.5 py-1.5 rounded-md border outline-none cursor-pointer"
-        style={{ background: "rgba(240,237,232,0.05)", color: "var(--muted)", borderColor: "var(--card-border)" }}
+        style={{ background: "color-mix(in srgb, var(--foreground) 5%, transparent)", color: "var(--muted)", borderColor: "var(--card-border)" }}
       >
-        <option value="added" style={{ background: "#141414" }}>Sort: Added</option>
-        <option value="priority" style={{ background: "#141414" }}>Sort: Priority</option>
-        <option value="time" style={{ background: "#141414" }}>Sort: Time</option>
+        <option value="added" style={{ background: "var(--surface-elevated)" }}>Sort: Added</option>
+        <option value="priority" style={{ background: "var(--surface-elevated)" }}>Sort: Priority</option>
+        <option value="time" style={{ background: "var(--surface-elevated)" }}>Sort: Time</option>
       </select>
 
       <button
         onClick={() => setShowDone(!showDone)}
         className="font-mono-data text-xs px-3 py-1.5 rounded-md transition-all duration-150"
         style={{
-          background: showDone ? "rgba(240,237,232,0.08)" : "transparent",
+          background: showDone ? "color-mix(in srgb, var(--foreground) 8%, transparent)" : "transparent",
           color: showDone ? "var(--foreground)" : "var(--muted)",
           border: "1px solid var(--card-border)",
         }}
@@ -316,20 +316,20 @@ export function TaskListWidget() {
       </div>
 
       <motion.button
-        whileHover={{ backgroundColor: "rgba(240,237,232,0.025)" }}
+        whileHover={{ backgroundColor: "color-mix(in srgb, var(--foreground) 2%, transparent)" }}
         onClick={() => setShowModal(true)}
         className="w-full flex items-center gap-3 px-5 py-4 group/add mt-auto"
         style={{ borderTop: "1px solid var(--card-border)" }}
       >
         <span
           className="w-[18px] h-[18px] rounded-full border flex-shrink-0 flex items-center justify-center transition-all duration-150 group-hover/add:border-[var(--accent)]"
-          style={{ border: "1.5px dashed rgba(240,237,232,0.15)" }}
+          style={{ border: "1.5px dashed color-mix(in srgb, var(--foreground) 15%, transparent)" }}
         >
           <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
             <path d="M4 1V7M1 4H7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
           </svg>
         </span>
-        <span className="text-sm" style={{ color: "var(--muted)" }}>Add task or task + note…</span>
+        <span className="text-sm" style={{ color: "var(--muted)" }}>Add task or task + note...</span>
       </motion.button>
     </motion.div>
   );

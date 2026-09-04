@@ -1,4 +1,4 @@
-import { ThemeDefinition } from "./types";
+﻿import { ThemeDefinition } from "./types";
 
 export const BUILT_IN_THEMES: Record<string, ThemeDefinition> = {
   "dailys-default": {

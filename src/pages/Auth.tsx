@@ -207,7 +207,7 @@ export default function Auth() {
       {/* Full-screen WebGL Background */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <canvas ref={canvasRef} className="w-full h-full block" />
-        <div className="absolute inset-0" style={{ background: "radial-gradient(circle at center, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0) 100%)" }} />
+        <div className="absolute inset-0" style={{ background: "radial-gradient(circle at center, color-mix(in srgb, var(--background) 75%, transparent) 0%, rgba(0,0,0,0) 100%)" }} />
       </div>
 
       {/* Left Side - Visual/Copy */}
@@ -231,7 +231,7 @@ export default function Auth() {
       {/* Right Side - Form */}
       <div 
         className="w-full lg:w-[480px] xl:w-[520px] flex-shrink-0 min-h-screen relative z-10 flex flex-col justify-center px-8 sm:px-12 py-12 overflow-y-auto"
-        style={{ background: "#0c0c0c", borderLeft: "1px solid #222" }}
+        style={{ background: "var(--background)", borderLeft: "1px solid #222" }}
       >
         <div className="w-full max-w-sm mx-auto">
           
@@ -306,7 +306,7 @@ export default function Auth() {
                   style={{ background: "white", color: "black", opacity: otpLoading ? 0.7 : 1 }}
                 >
                   {otpLoading && <span className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />}
-                  {otpLoading ? "Verifying…" : "Verify code"}
+                  {otpLoading ? "Verifying..." : "Verify code"}
                 </motion.button>
               </form>
 
@@ -323,7 +323,7 @@ export default function Auth() {
                     cursor: cooldown > 0 || resending ? "not-allowed" : "pointer",
                   }}
                 >
-                  {resending ? "Sending…" : cooldown > 0 ? `Resend in ${cooldown}s` : "Resend code"}
+                  {resending ? "Sending..." : cooldown > 0 ? `Resend in ${cooldown}s` : "Resend code"}
                 </button>
                 <button
                   onClick={() => setNeedsVerification(false)}
@@ -440,7 +440,7 @@ export default function Auth() {
                         type={showPw ? "text" : "password"}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        placeholder="••••••••"
+                        placeholder="********"
                         required
                         minLength={8}
                         className="w-full px-4 py-3.5 pr-10 rounded-xl text-sm outline-none transition-all duration-150"
@@ -532,7 +532,7 @@ export default function Auth() {
                         <circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.5" strokeDasharray="10 24" />
                       </svg>
                     )}
-                    {loading ? "Please wait…" : isSignup ? "Create account" : "Sign in"}
+                    {loading ? "Please wait..." : isSignup ? "Create account" : "Sign in"}
                   </motion.button>
                 </form>
 

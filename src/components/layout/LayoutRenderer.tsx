@@ -7,6 +7,7 @@ interface LayoutRendererProps {
 }
 
 export function LayoutRenderer({ spec }: LayoutRendererProps) {
+  if (!spec || !spec.root) return null;
   return (
     <div className="layout-renderer w-full h-full bg-[var(--background)] text-[var(--foreground)]">
       {renderNode(spec.root)}
@@ -15,6 +16,7 @@ export function LayoutRenderer({ spec }: LayoutRendererProps) {
 }
 
 function renderNode(node: LayoutNode, keyPath: string = "root"): React.ReactNode {
+  if (!node) return null;
   switch (node.type) {
     case "widget": {
       const WidgetComponent = ComponentManifest[node.widgetId];
@@ -52,7 +54,7 @@ function renderNode(node: LayoutNode, keyPath: string = "root"): React.ReactNode
 
       return (
         <div key={keyPath} className={`${gridClass} w-full`}>
-          {node.children.map((child, index) => renderNode(child, `${keyPath}-${index}`))}
+          {node.children?.map((child, index) => renderNode(child, `${keyPath}-${index}`))}
         </div>
       );
     }
@@ -61,7 +63,41 @@ function renderNode(node: LayoutNode, keyPath: string = "root"): React.ReactNode
       const gapClass = node.gap === "sm" ? "gap-2" : node.gap === "lg" ? "gap-8" : "gap-4 md:gap-5";
       return (
         <div key={keyPath} className={`${dirClass} ${gapClass} w-full min-w-0`}>
-          {node.children.map((child, index) => renderNode(child, `${keyPath}-${index}`))}
+          {node.children?.map((child, index) => renderNode(child, `${keyPath}-${index}`))}
+        </div>
+      );
+    }
+    case "canvas": {
+      const columns = node.columns || 12;
+      const rowHeight = node.rowHeight || 40;
+      const gap = node.gap || 16;
+      
+      const spanMap: Record<number, string> = {
+        1: "md:col-span-1", 2: "md:col-span-2", 3: "md:col-span-3", 4: "md:col-span-4",
+        5: "md:col-span-5", 6: "md:col-span-6", 7: "md:col-span-7", 8: "md:col-span-8",
+        9: "md:col-span-9", 10: "md:col-span-10", 11: "md:col-span-11", 12: "md:col-span-12"
+      };
+      
+      return (
+        <div 
+          key={keyPath} 
+          className="w-full relative"
+          style={{
+            display: "grid",
+            gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
+            gridAutoRows: `minmax(${rowHeight}px, auto)`,
+            gap: `${gap}px`
+          }}
+        >
+          {node.children?.map((child, index) => {
+            // we use the standard span mapping for widgets in the canvas
+            const spanClass = child.type === "widget" && child.span && spanMap[child.span] ? spanMap[child.span] : "md:col-span-12";
+            return (
+              <div key={`${keyPath}-${index}`} className={`${spanClass} w-full h-full min-w-0 min-h-0`}>
+                {renderNode(child, `${keyPath}-${index}`)}
+              </div>
+            );
+          })}
         </div>
       );
     }
