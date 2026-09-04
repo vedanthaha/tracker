@@ -1,4 +1,4 @@
-import {
+﻿import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, RadialBarChart, RadialBar,
@@ -27,18 +27,18 @@ const GOALS = [
 const TT = {
   contentStyle: {
     background: "#1a1a1a",
-    border: "1px solid rgba(240,237,232,0.07)",
+    border: "1px solid color-mix(in srgb, var(--foreground) 7%, transparent)",
     borderRadius: "8px",
     fontSize: "11px",
     fontFamily: "JetBrains Mono, monospace",
     color: "#f0ede8",
   },
-  labelStyle: { color: "rgba(240,237,232,0.4)", marginBottom: "4px" },
+  labelStyle: { color: "color-mix(in srgb, var(--foreground) 40%, transparent)", marginBottom: "4px" },
 };
 
 const TICK = {
   fontSize: 10,
-  fill: "rgba(240,237,232,0.3)",
+  fill: "color-mix(in srgb, var(--foreground) 30%, transparent)",
   fontFamily: "JetBrains Mono, monospace",
 };
 
@@ -57,7 +57,7 @@ function Card({ title, children, className = "", delay = 0 }: { title: string; c
   );
 }
 
-function DonutChart({ data }: { name: string; value: number; color: string }[]) {
+function DonutChart({ data }: { data: { name: string; value: number; color: string }[] }) {
   const isEmpty = data.every((d) => d.value === 0);
   if (isEmpty) {
     return (
@@ -73,7 +73,7 @@ function DonutChart({ data }: { name: string; value: number; color: string }[]) 
       <div style={{ height: "160px" }}>
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
-            <Pie data={data} cx="50%" cy="50%" innerRadius={46} outerRadius={68} paddingAngle={3} dataKey="value" strokeWidth={0}>
+            <Pie data={data as any[]} cx="50%" cy="50%" innerRadius={46} outerRadius={68} paddingAngle={3} dataKey="value" strokeWidth={0}>
               {data.map((d) => <Cell key={d.name} fill={d.color} opacity={0.85} />)}
             </Pie>
             <Tooltip {...TT} formatter={(v) => [`${v}%`, ""]} />
@@ -126,7 +126,7 @@ export default function Analytics() {
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="px-8 py-8 max-w-5xl mx-auto">
+      <div className="px-4 md:px-8 py-6 md:py-8 max-w-5xl mx-auto">
 
         {/* Header */}
         <motion.div
@@ -138,7 +138,7 @@ export default function Analytics() {
         </motion.div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 md:grid-cols-6 gap-4 mb-6">
+        <div className="grid grid-cols-2 lg:grid-cols-6 gap-3 md:gap-4 mb-6">
           {statsRow.map((s, i) => (
             <motion.div
               key={s.label}
@@ -156,10 +156,10 @@ export default function Analytics() {
         </div>
 
         {/* 30-day area chart */}
-        <Card title="30-Day Productivity — Tasks Completed" className="mb-5" delay={0.36}>
+        <Card title="30-Day Productivity - Tasks Completed" className="mb-5" delay={0.36}>
           <div style={{ height: "220px" }}>
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={thirtyDays} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
+              <AreaChart data={thirtyDays as any[]} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
                 <defs>
                   <linearGradient id="completedGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="#d4a853" stopOpacity={0.3} />
@@ -170,11 +170,11 @@ export default function Analytics() {
                     <stop offset="100%" stopColor="#7eb8e8" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid stroke="rgba(240,237,232,0.04)" strokeDasharray="4 4" vertical={false} />
+                <CartesianGrid stroke="color-mix(in srgb, var(--foreground) 4%, transparent)" strokeDasharray="4 4" vertical={false} />
                 <XAxis dataKey="date" tick={TICK} axisLine={false} tickLine={false} interval={4} />
                 <YAxis tick={TICK} axisLine={false} tickLine={false} />
-                <Tooltip {...TT} cursor={{ stroke: "rgba(240,237,232,0.08)" }} />
-                <Area type="monotone" dataKey="completed" name="Completed" stroke="#d4a853" strokeWidth={2} fill="url(#completedGrad)" dot={false} activeDot={{ r: 4, fill: "#d4a853", stroke: "#0c0c0c", strokeWidth: 2 }} />
+                <Tooltip {...TT} cursor={{ stroke: "color-mix(in srgb, var(--foreground) 8%, transparent)" }} />
+                <Area type="monotone" dataKey="completed" name="Completed" stroke="#d4a853" strokeWidth={2} fill="url(#completedGrad)" dot={false} activeDot={{ r: 4, fill: "#d4a853", stroke: "var(--background)", strokeWidth: 2 }} />
                 <Area type="monotone" dataKey="added" name="Added" stroke="#7eb8e8" strokeWidth={1.5} fill="url(#addedGrad)" dot={false} activeDot={{ r: 3, fill: "#7eb8e8" }} strokeDasharray="4 2" />
               </AreaChart>
             </ResponsiveContainer>
@@ -190,15 +190,15 @@ export default function Analytics() {
         </Card>
 
         {/* Row: stacked bar + radial */}
-        <div className="grid gap-5 mb-5" style={{ gridTemplateColumns: "1fr 1fr" }}>
-          <Card title="Tasks by Category — This Week" delay={0.42}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+          <Card title="Tasks by Category - This Week" delay={0.42}>
             <div style={{ height: "200px" }}>
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={weekData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }} barSize={10}>
-                  <CartesianGrid stroke="rgba(240,237,232,0.04)" strokeDasharray="4 4" vertical={false} />
+                <BarChart data={weekData as any[]} margin={{ top: 5, right: 5, left: -25, bottom: 0 }} barSize={10}>
+                  <CartesianGrid stroke="color-mix(in srgb, var(--foreground) 4%, transparent)" strokeDasharray="4 4" vertical={false} />
                   <XAxis dataKey="day" tick={TICK} axisLine={false} tickLine={false} />
                   <YAxis tick={TICK} axisLine={false} tickLine={false} />
-                  <Tooltip {...TT} cursor={{ fill: "rgba(240,237,232,0.03)" }} />
+                  <Tooltip {...TT} cursor={{ fill: "color-mix(in srgb, var(--foreground) 3%, transparent)" }} />
                   <Bar dataKey="work" name="Work" stackId="a" fill="#d4a853" />
                   <Bar dataKey="focus" name="Focus" stackId="a" fill="#b48ee8" />
                   <Bar dataKey="personal" name="Personal" stackId="a" fill="#7eb8e8" />
@@ -219,8 +219,8 @@ export default function Analytics() {
           <Card title="Weekly Goals Progress" delay={0.46}>
             <div style={{ height: "200px" }}>
               <ResponsiveContainer width="100%" height="100%">
-                <RadialBarChart cx="50%" cy="50%" innerRadius="20%" outerRadius="90%" data={GOALS} startAngle={90} endAngle={-270}>
-                  <RadialBar dataKey="value" cornerRadius={4} background={{ fill: "rgba(240,237,232,0.04)" }} />
+                <RadialBarChart cx="50%" cy="50%" innerRadius="20%" outerRadius="90%" data={GOALS as any[]} startAngle={90} endAngle={-270}>
+                  <RadialBar dataKey="value" cornerRadius={4} background={{ fill: "color-mix(in srgb, var(--foreground) 4%, transparent)" }} />
                   <Tooltip {...TT} formatter={(v) => [`${v}%`, "Progress"]} />
                 </RadialBarChart>
               </ResponsiveContainer>
@@ -238,7 +238,7 @@ export default function Analytics() {
         </div>
 
         {/* Three pie charts */}
-        <div className="grid grid-cols-3 gap-5 mb-5">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
           <Card title="Task Distribution" delay={0.5}>
             <DonutChart data={taskDist} />
           </Card>
@@ -250,35 +250,35 @@ export default function Analytics() {
           </Card>
         </div>
 
-        {/* Focus time — left for now (repurposed to real completed/day) */}
-        <Card title="Daily Tasks Completed — 30 Days" className="mb-5" delay={0.62}>
+        {/* Focus time - left for now (repurposed to real completed/day) */}
+        <Card title="Daily Tasks Completed - 30 Days" className="mb-5" delay={0.62}>
           <div style={{ height: "180px" }}>
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={thirtyDays} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
-                <CartesianGrid stroke="rgba(240,237,232,0.04)" strokeDasharray="4 4" vertical={false} />
+              <LineChart data={thirtyDays as any[]} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
+                <CartesianGrid stroke="color-mix(in srgb, var(--foreground) 4%, transparent)" strokeDasharray="4 4" vertical={false} />
                 <XAxis dataKey="date" tick={TICK} axisLine={false} tickLine={false} interval={4} />
                 <YAxis tick={TICK} axisLine={false} tickLine={false} allowDecimals={false} />
-                <Tooltip {...TT} cursor={{ stroke: "rgba(240,237,232,0.08)" }} formatter={(v) => [`${v}`, "Completed"]} />
-                <Line type="monotone" dataKey="completed" name="Completed" stroke="#b48ee8" strokeWidth={2} dot={false} activeDot={{ r: 4, fill: "#b48ee8", stroke: "#0c0c0c", strokeWidth: 2 }} />
+                <Tooltip {...TT} cursor={{ stroke: "color-mix(in srgb, var(--foreground) 8%, transparent)" }} formatter={(v) => [`${v}`, "Completed"]} />
+                <Line type="monotone" dataKey="completed" name="Completed" stroke="#b48ee8" strokeWidth={2} dot={false} activeDot={{ r: 4, fill: "#b48ee8", stroke: "var(--background)", strokeWidth: 2 }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
-          <div className="flex items-center gap-6 mt-3">
+          <div className="flex flex-wrap items-center gap-4 md:gap-6 mt-3">
             {[
               { label: "Average", value: `${avgFocus}`, color: "#b48ee8" },
               { label: "Best day", value: `${Math.max(...thirtyDays.map((d) => d.completed), 0)}`, color: "var(--green)" },
               { label: "This week", value: `${thirtyDays.slice(-7).reduce((s, d) => s + d.completed, 0)}`, color: "var(--accent)" },
             ].map((s) => (
               <div key={s.label}>
-                <p className="font-mono-data text-xs" style={{ color: "var(--muted)" }}>{s.label}</p>
-                <p className="font-display text-lg" style={{ color: s.color }}>{s.value}</p>
+                <p className="font-mono-data text-[10px] md:text-xs" style={{ color: "var(--muted)" }}>{s.label}</p>
+                <p className="font-display text-base md:text-lg" style={{ color: s.color }}>{s.value}</p>
               </div>
             ))}
           </div>
         </Card>
 
-        {/* Activity heatmap — now real */}
-        <Card title="Activity Heatmap — Last 12 Weeks" delay={0.66}>
+        {/* Activity heatmap - now real */}
+        <Card title="Activity Heatmap - Last 12 Weeks" delay={0.66}>
           <div className="overflow-x-auto">
             <div className="flex gap-1" style={{ minWidth: "fit-content" }}>
               {Array.from({ length: 12 }, (_, week) => (
@@ -293,7 +293,7 @@ export default function Analytics() {
                         transition={{ delay: 0.66 + (week * 7 + day) * 0.003, duration: 0.15 }}
                         className="w-3.5 h-3.5 rounded-sm"
                         title={`${cell.date}: ${cell.count} task${cell.count !== 1 ? "s" : ""}`}
-                        style={{ background: cell.level === 0 ? "rgba(240,237,232,0.05)" : `rgba(212,168,83,${ops[cell.level]})` }}
+                        style={{ background: cell.level === 0 ? "color-mix(in srgb, var(--foreground) 5%, transparent)" : `rgba(212,168,83,${ops[cell.level]})` }}
                       />
                     );
                   })}
@@ -301,7 +301,7 @@ export default function Analytics() {
               ))}
             </div>
           </div>
-          <div className="flex items-center gap-2 mt-4">
+          <div className="flex items-center gap-2 mt-4 flex-wrap">
             <span className="font-mono-data text-xs" style={{ color: "var(--muted)" }}>Less</span>
             {[0.05, 0.2, 0.4, 0.65, 1].map((o) => (
               <div key={o} className="w-3 h-3 rounded-sm" style={{ background: `rgba(212,168,83,${o})` }} />

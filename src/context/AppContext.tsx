@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
 import { supabase, checkDbReady } from "../lib/supabase";
 import type { Session } from "@supabase/supabase-js";
+import type { LayoutSpec, WorkspaceLayout } from "../lib/design/LayoutSpec";
 
 export type Priority = "high" | "medium" | "low";
 export type TaskCategory = "work" | "personal" | "health" | "focus";
@@ -21,7 +22,7 @@ export interface Task {
 export interface Note {
   id: number;
   title: string;
-  content: string;
+  content: any;
   category: NoteCategory;
   createdAt: string;
   updatedAt: string;
@@ -40,6 +41,7 @@ export interface User {
 interface AppContextType {
   tasks: Task[];
   notes: Note[];
+  layouts: WorkspaceLayout[];
   user: User | null;
   loading: boolean;
   dbReady: boolean;
@@ -64,11 +66,13 @@ interface AppContextType {
   // profile
   updateProfile: (updates: { name?: string; bio?: string }) => Promise<{ error?: string }>;
   uploadAvatar: (file: File) => Promise<{ url?: string; error?: string }>;
+  // layouts
+  saveLayout: (surface: string, spec: LayoutSpec) => Promise<{ error?: string }>;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
 
-// ── DB row ↔ frontend type mappers ────────────────────────────
+// -- DB row <-> frontend type mappers ----------------------------
 
 function mapTask(row: Record<string, unknown>): Task {
   return {
@@ -85,10 +89,20 @@ function mapTask(row: Record<string, unknown>): Task {
 }
 
 function mapNote(row: Record<string, unknown>): Note {
+  // Handle case where content might come back as parsed JSON object or string
+  let content = row.content;
+  if (typeof content === 'string' && content.startsWith('{')) {
+    try {
+      content = JSON.parse(content);
+    } catch (e) {
+      // ignore
+    }
+  }
+
   return {
     id: row.id as number,
     title: row.title as string,
-    content: row.content as string,
+    content: content,
     category: row.category as NoteCategory,
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
@@ -100,6 +114,7 @@ function mapNote(row: Record<string, unknown>): Note {
 export function AppProvider({ children }: { children: ReactNode }) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
+  const [layouts, setLayouts] = useState<WorkspaceLayout[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [dbReady, setDbReady] = useState(false);
@@ -107,10 +122,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const loadUserData = useCallback(async (session: Session) => {
     const authUser = session.user;
 
-    const [profileRes, tasksRes, notesRes] = await Promise.all([
+    const [profileRes, tasksRes, notesRes, layoutsRes] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", authUser.id).single(),
       supabase.from("tasks").select("*").eq("user_id", authUser.id).order("created_at", { ascending: true }),
       supabase.from("notes").select("*").eq("user_id", authUser.id).order("created_at", { ascending: false }),
+      supabase.from("workspace_layouts").select("*").eq("user_id", authUser.id),
     ]);
 
     const profile = profileRes.data;
@@ -124,6 +140,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     setTasks(tasksRes.data ? tasksRes.data.map(mapTask) : []);
     setNotes(notesRes.data ? notesRes.data.map(mapNote) : []);
+    setLayouts(layoutsRes.data ? layoutsRes.data as WorkspaceLayout[] : []);
     setLoading(false);
   }, []);
 
@@ -170,6 +187,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setUser(null);
         setTasks([]);
         setNotes([]);
+        setLayouts([]);
         setLoading(false);
       }
     });
@@ -177,7 +195,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, [loadUserData]);
 
-  // ── Auth ──────────────────────────────────────────────────────
+  // -- Auth ------------------------------------------------------
 
   const login = async (email: string, password: string): Promise<{ error?: string }> => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -240,7 +258,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
   };
 
-  // ── Profile ───────────────────────────────────────────────────
+  // -- Profile ---------------------------------------------------
 
   const updateProfile = async (updates: { name?: string; bio?: string }): Promise<{ error?: string }> => {
     if (!user) return { error: "Not logged in" };
@@ -268,7 +286,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return { url };
   };
 
-  // ── Tasks (optimistic + DB sync) ──────────────────────────────
+  // -- Tasks (optimistic + DB sync) ------------------------------
 
   const addTask = (t: Omit<Task, "id" | "createdAt">) => {
     if (!user) return;
@@ -311,7 +329,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       .then(({ error }) => { if (error) console.error("deleteTask sync:", error.message); });
   };
 
-  // ── Notes (optimistic + DB sync) ─────────────────────────────
+  // -- Notes (optimistic + DB sync) -----------------------------
 
   const addNote = (n: Omit<Note, "id" | "createdAt" | "updatedAt">) => {
     if (!user) return;
@@ -387,14 +405,36 @@ export function AppProvider({ children }: { children: ReactNode }) {
       .then(({ error }) => { if (error) console.error("linkTaskToNote note sync:", error.message); });
   };
 
+  const saveLayout = async (surface: string, spec: LayoutSpec) => {
+    if (!user) return { error: "Not logged in" };
+    const { data, error } = await supabase
+      .from("workspace_layouts")
+      .upsert(
+        { user_id: user.id, surface, layout_spec: spec },
+        { onConflict: "user_id, surface" }
+      )
+      .select()
+      .single();
+
+    if (error) {
+      console.error("saveLayout error:", error.message);
+      return { error: error.message };
+    }
+    setLayouts((prev) => {
+      const filtered = prev.filter((l) => l.surface !== surface);
+      return [...filtered, data as WorkspaceLayout];
+    });
+    return {};
+  };
+
   return (
     <AppContext.Provider value={{
-      tasks, notes, user, loading, dbReady,
+      tasks, notes, layouts, user, loading, dbReady,
       addTask, toggleTask, deleteTask,
       addNote, updateNote, deleteNote,
       createLinked, linkTaskToNote,
       login, signup, signInWithOAuth, verifyOtp, resendOtp, logout,
-      updateProfile, uploadAvatar,
+      updateProfile, uploadAvatar, saveLayout,
     }}>
       {children}
     </AppContext.Provider>

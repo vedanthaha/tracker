@@ -7,7 +7,9 @@ import Todos from "../pages/Todos";
 import Notes from "../pages/Notes";
 import Analytics from "../pages/Analytics";
 import Graph from "../pages/Graph";
+import MetricTracker from "../pages/MetricTracker";
 import Profile from "../pages/Profile";
+import Settings from "../pages/Settings";
 
 export const router = createHashRouter([
   { path: "/", Component: Landing },
@@ -22,7 +24,9 @@ export const router = createHashRouter([
       { path: "notes", Component: Notes },
       { path: "analytics", Component: Analytics },
       { path: "graph", Component: Graph },
+      { path: "metric-tracker", Component: MetricTracker },
       { path: "profile", Component: Profile },
+      { path: "settings", Component: Settings },
     ],
   },
 ]);

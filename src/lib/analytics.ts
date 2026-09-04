@@ -1,6 +1,6 @@
-import type { Task, Note, TaskCategory, NoteCategory } from "../context/AppContext";
+﻿import type { Task, Note, TaskCategory, NoteCategory } from "../context/AppContext";
 
-// ── date helpers ────────────────────────────────────────────────
+// -- date helpers ------------------------------------------------
 function toDateKey(d: Date): string {
   return d.toISOString().slice(0, 10); // YYYY-MM-DD UTC
 }
@@ -15,7 +15,7 @@ function dayKeyFromISO(iso: string | null | undefined): string | null {
   return new Date(iso).toISOString().slice(0, 10);
 }
 
-// ── buckets ────────────────────────────────────────────────────
+// -- buckets ----------------------------------------------------
 export interface ThirtyDayRow {
   date: string;
   key: string;
@@ -95,7 +95,7 @@ export function getMiniChartData(tasks: Task[]): MiniRow[] {
   return week.map((r) => ({ day: r.day, tasks: r.work + r.focus + r.personal + r.health }));
 }
 
-// ── distributions ─────────────────────────────────────────────
+// -- distributions ---------------------------------------------
 export function getTaskDistribution(tasks: Task[]): { name: string; value: number; color: string }[] {
   const total = tasks.length;
   if (total === 0) return [
@@ -148,7 +148,7 @@ export function getPriorityDistribution(tasks: Task[]): { name: string; value: n
   ];
 }
 
-// ── streak ─────────────────────────────────────────────────────
+// -- streak -----------------------------------------------------
 export function computeStreak(tasks: Task[]): number {
   if (tasks.length === 0) return 0;
   const activeDays = new Set<string>();
@@ -180,7 +180,7 @@ export function computeStreak(tasks: Task[]): number {
   return streak;
 }
 
-// ── heatmap ────────────────────────────────────────────────────
+// -- heatmap ----------------------------------------------------
 export function getHeatmap(tasks: Task[]): { date: string; count: number; level: number }[] {
   const map = new Map<string, number>();
   for (const t of tasks) {

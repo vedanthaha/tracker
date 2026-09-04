@@ -1,0 +1,110 @@
+﻿import { LayoutNode, LayoutSpec, GridContainer, StackContainer, WidgetNode } from "../../lib/design/LayoutSpec";
+import { nanoid } from "nanoid";
+
+// Recursively ensure all nodes have unique IDs for editor tracking
+export function ensureNodeIds(node: LayoutNode): LayoutNode {
+  const newNode = { ...node };
+  if (!newNode.id) {
+    newNode.id = nanoid();
+  }
+
+  if (newNode.type === "grid" || newNode.type === "stack") {
+    newNode.children = newNode.children.map(ensureNodeIds);
+  }
+
+  return newNode;
+}
+
+export function findNode(root: LayoutNode, id: string): LayoutNode | null {
+  if (root.id === id) return root;
+  if (root.type === "grid" || root.type === "stack") {
+    for (const child of root.children) {
+      const found = findNode(child, id);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+export function findParent(root: LayoutNode, childId: string): GridContainer | StackContainer | null {
+  if (root.type === "grid" || root.type === "stack") {
+    if (root.children.some(c => c.id === childId)) {
+      return root;
+    }
+    for (const child of root.children) {
+      const parent = findParent(child, childId);
+      if (parent) return parent;
+    }
+  }
+  return null;
+}
+
+export function removeNode(root: LayoutNode, id: string): LayoutNode | null {
+  if (root.id === id) return null; // Can't return null from root easily, handled by caller
+
+  if (root.type === "grid" || root.type === "stack") {
+    const newRoot = { ...root, children: [...root.children] };
+    const idx = newRoot.children.findIndex(c => c.id === id);
+    if (idx !== -1) {
+      newRoot.children.splice(idx, 1);
+      return newRoot;
+    } else {
+      newRoot.children = newRoot.children.map(c => removeNode(c, id)).filter(Boolean) as LayoutNode[];
+      return newRoot;
+    }
+  }
+  return root;
+}
+
+export function insertNode(
+  root: LayoutNode,
+  parentId: string,
+  node: LayoutNode,
+  index?: number
+): LayoutNode {
+  if (root.id === parentId && (root.type === "grid" || root.type === "stack")) {
+    const newRoot = { ...root, children: [...root.children] };
+    if (index !== undefined && index >= 0 && index <= newRoot.children.length) {
+      newRoot.children.splice(index, 0, node);
+    } else {
+      newRoot.children.push(node);
+    }
+    return newRoot;
+  }
+
+  if (root.type === "grid" || root.type === "stack") {
+    return {
+      ...root,
+      children: root.children.map(c => insertNode(c, parentId, node, index))
+    };
+  }
+
+  return root;
+}
+
+export function updateNode(root: LayoutNode, id: string, updates: Partial<LayoutNode>): LayoutNode {
+  if (root.id === id) {
+    return { ...root, ...updates } as LayoutNode;
+  }
+  if (root.type === "grid" || root.type === "stack") {
+    return {
+      ...root,
+      children: root.children.map(c => updateNode(c, id, updates))
+    };
+  }
+  return root;
+}
+
+// Clean up empty containers
+export function pruneEmptyContainers(node: LayoutNode): LayoutNode | null {
+  if (node.type === "grid" || node.type === "stack") {
+    const prunedChildren = node.children
+      .map(pruneEmptyContainers)
+      .filter(Boolean) as LayoutNode[];
+    
+    // We shouldn't prune the root even if empty, so caller must handle it
+    if (prunedChildren.length === 0) return null;
+    return { ...node, children: prunedChildren };
+  }
+  return node;
+}

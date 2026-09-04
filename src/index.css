@@ -31,15 +31,15 @@ body,
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body, 'Inter', sans-serif);
 }
 
 .font-display {
-  font-family: 'Instrument Serif', serif;
+  font-family: var(--font-display, 'Instrument Serif', serif);
 }
 
 .font-mono-data {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
 }
 
 /* Scrollbars */
@@ -102,7 +102,7 @@ body {
   border: none;
   outline: none;
   color: var(--foreground);
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body, 'Inter', sans-serif);
   font-size: 14px;
   width: 100%;
 }
@@ -149,3 +149,64 @@ select option {
 .link-drag-line {
   animation: link-dash-anim 0.4s linear infinite;
 }
+
+/* ProseMirror Table Styles */
+.tableWrapper {
+  overflow-x: auto;
+  margin: 1.5rem 0;
+  border-radius: var(--radius);
+  border: 1px solid var(--card-border);
+}
+
+.ProseMirror table {
+  border-collapse: collapse;
+  margin: 0;
+  overflow: hidden;
+  table-layout: fixed;
+  width: 100%;
+}
+
+.ProseMirror td,
+.ProseMirror th {
+  border: 1px solid var(--card-border);
+  box-sizing: border-box;
+  min-width: 3em;
+  padding: 8px 12px;
+  position: relative;
+  vertical-align: top;
+  background-color: var(--background);
+}
+
+.ProseMirror th {
+  background-color: var(--card);
+  font-weight: 500;
+  text-align: left;
+  color: var(--foreground);
+}
+
+.ProseMirror td > p,
+.ProseMirror th > p {
+  margin: 0;
+}
+
+.ProseMirror .selectedCell:after {
+  background: var(--foreground);
+  content: "";
+  left: 0; right: 0; top: 0; bottom: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 2;
+  opacity: 0.1;
+}
+
+.ProseMirror .column-resize-handle {
+  background-color: var(--accent);
+  bottom: -2px;
+  position: absolute;
+  right: -2px;
+  pointer-events: none;
+  top: 0;
+  width: 4px;
+  z-index: 20;
+}
+

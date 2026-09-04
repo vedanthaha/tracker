@@ -3,6 +3,8 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApp } from "../context/AppContext";
 import { useEffect, useRef } from "react";
+import { ErrorBoundary } from "../ErrorBoundary";
+import { SidebarClock } from "../components/SidebarClock";
 
 const NAV_ITEMS = [
   {
@@ -61,6 +63,27 @@ const NAV_ITEMS = [
       </svg>
     ),
   },
+  {
+    to: "/dashboard/metric-tracker",
+    label: "Metric Tracker",
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+        <rect x="2" y="2" width="14" height="14" rx="3" stroke="currentColor" strokeWidth="1.4" />
+        <path d="M6 5v8M12 5v8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+        <path d="M2 9h14" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+      </svg>
+    ),
+  },
+  {
+    to: "/dashboard/settings",
+    label: "Settings",
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+        <path d="M9 13.5A4.5 4.5 0 109 4.5a4.5 4.5 0 000 9z" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M12.9 2.5l.8 2.2a6.3 6.3 0 011.6.7l2.1-1.1L18.8 5.7l-1.3 2a6 6 0 010 2.6l1.3 2-1.4 1.4-2.1-1.1a6.3 6.3 0 01-1.6.7l-.8 2.2H10.1l-.8-2.2a6.3 6.3 0 01-1.6-.7l-2.1 1.1-1.4-1.4 1.3-2a6 6 0 010-2.6l-1.3-2L3.8 4.3l2.1 1.1a6.3 6.3 0 011.6-.7l.8-2.2h2.8z" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
+  },
 ];
 
 export default function AppLayout() {
@@ -88,7 +111,7 @@ export default function AppLayout() {
           animate={{ opacity: [0.3, 1, 0.3] }}
           transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
           className="font-display text-2xl"
-          style={{ color: "rgba(240,237,232,0.5)" }}
+          style={{ color: "color-mix(in srgb, var(--foreground) 50%, transparent)" }}
         >
           Dailys
         </motion.div>
@@ -111,7 +134,7 @@ export default function AppLayout() {
   return (
     <div className="flex h-full" style={{ background: "var(--background)" }}>
 
-      {/* Sidebar — motion width */}
+      {/* Sidebar - motion width */}
       <motion.aside
         animate={{ width: collapsed ? 64 : 220 }}
         transition={{ duration: 0.28, ease: [0.25, 0.1, 0.25, 1] }}
@@ -172,7 +195,7 @@ export default function AppLayout() {
                 <NavLink
                   to={item.to}
                   end={item.to === "/dashboard"}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg relative overflow-hidden"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg relative overflow-hidden transition-all hover:bg-[color-mix(in_srgb,var(--foreground)_4%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] active:scale-[0.98]"
                   style={{ color: isActive ? "var(--accent)" : "var(--muted)" }}
                 >
                   {/* Animated active background */}
@@ -210,6 +233,9 @@ export default function AppLayout() {
           })}
         </nav>
 
+        {/* Sidebar Clock */}
+        <SidebarClock collapsed={collapsed} />
+
         {/* Today progress */}
         <AnimatePresence initial={false}>
           {!collapsed && (
@@ -219,7 +245,7 @@ export default function AppLayout() {
               exit={{ opacity: 0, scaleY: 0.85 }}
               transition={{ duration: 0.2 }}
               className="mx-3 mb-3 p-3 rounded-lg flex-shrink-0"
-              style={{ background: "rgba(240,237,232,0.04)", border: "1px solid var(--card-border)" }}
+              style={{ background: "color-mix(in srgb, var(--foreground) 4%, transparent)", border: "1px solid var(--card-border)" }}
             >
               <div className="flex justify-between items-center mb-2">
                 <span className="font-mono-data text-xs" style={{ color: "var(--muted)" }}>Today</span>
@@ -227,7 +253,7 @@ export default function AppLayout() {
                   {completedToday}/{totalToday}
                 </span>
               </div>
-              <div className="h-1 rounded-full overflow-hidden" style={{ background: "rgba(240,237,232,0.07)" }}>
+              <div className="h-1 rounded-full overflow-hidden" style={{ background: "color-mix(in srgb, var(--foreground) 7%, transparent)" }}>
                 <motion.div
                   className="h-full rounded-full"
                   animate={{ width: totalToday ? `${(completedToday / totalToday) * 100}%` : "0%" }}
@@ -244,11 +270,14 @@ export default function AppLayout() {
 
         {/* User */}
         <motion.div
-          className="flex items-center gap-3 p-4 flex-shrink-0 cursor-pointer"
+          className="flex items-center gap-3 p-4 flex-shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--focus)] transition-colors"
           style={{ borderTop: "1px solid var(--card-border)" }}
-          whileHover={{ background: "rgba(240,237,232,0.03)" }}
+          whileHover={{ background: "color-mix(in srgb, var(--foreground) 3%, transparent)" }}
+          whileTap={{ scale: 0.98 }}
           onClick={() => navigate("/dashboard/profile")}
           title="View profile"
+          tabIndex={0}
+          onKeyDown={(e) => { if (e.key === 'Enter') navigate("/dashboard/profile"); }}
         >
           <motion.div
             whileHover={{ scale: 1.08 }}
@@ -276,7 +305,7 @@ export default function AppLayout() {
                 <motion.button
                   whileHover={{ scale: 1.15, opacity: 1 }} whileTap={{ scale: 0.9 }}
                   onClick={(e) => { e.stopPropagation(); handleLogout(); }}
-                  className="opacity-35 flex-shrink-0"
+                  className="opacity-35 flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] rounded-md p-1"
                   title="Sign out"
                 >
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -309,7 +338,7 @@ export default function AppLayout() {
                 <button onClick={copySql} className="hover:opacity-80 transition-opacity" style={{ background: "none", border: "none", cursor: "pointer", color: "inherit" }}>
                   {sqlCopied ? "Copied!" : "Copy hint"}
                 </button>
-                <button onClick={() => setDbBannerDismissed(true)} className="opacity-50 hover:opacity-100 transition-opacity" style={{ background: "none", border: "none", cursor: "pointer", color: "inherit" }}>✕</button>
+                <button onClick={() => setDbBannerDismissed(true)} className="opacity-50 hover:opacity-100 transition-opacity" style={{ background: "none", border: "none", cursor: "pointer", color: "inherit" }}>X</button>
               </div>
             </motion.div>
           )}
@@ -324,7 +353,9 @@ export default function AppLayout() {
             transition={{ duration: 0.22, ease: [0.25, 0.1, 0.25, 1] }}
             className="flex-1 min-h-0 overflow-hidden"
           >
-            <Outlet />
+            <ErrorBoundary>
+              <Outlet />
+            </ErrorBoundary>
           </motion.main>
         </AnimatePresence>
       </div>

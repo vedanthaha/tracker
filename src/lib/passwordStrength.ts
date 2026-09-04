@@ -1,4 +1,4 @@
-export interface Strength {
+﻿export interface Strength {
   score: number; // 0-4
   label: string;
   color: string;

@@ -1,7 +1,9 @@
-import { useState, useMemo, useRef, useCallback, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { motion, AnimatePresence } from "framer-motion";
-import { useApp, type TaskCategory } from "../context/AppContext";
+import { GraphEngine, GNode, GEdge } from "../components/graph/GraphEngine";
+import { useApp } from "../context/AppContext";
+import { useTheme } from "../context/ThemeContext";
 
 const CAT_COLORS: Record<string, string> = {
   work: "#d4a853",
@@ -12,850 +14,125 @@ const CAT_COLORS: Record<string, string> = {
   journal: "#a0d0c0",
 };
 
-interface GNode {
-  id: string;
-  type: "task" | "note" | "category";
-  label: string;
-  sublabel?: string;
-  category: string;
-  color: string;
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  r: number;
-  completed?: boolean;
-  pinned?: boolean;
-  originalId?: number;
-}
-
-interface GEdge {
-  id: string;
-  source: string;
-  target: string;
-  kind: "cat" | "linked";
-}
-
-const W = 900;
-const H = 620;
-
-function runSim(nodes: GNode[], edges: GEdge[], steps = 1) {
-  for (let step = 0; step < steps; step++) {
-    for (let i = 0; i < nodes.length; i++) {
-      for (let j = i + 1; j < nodes.length; j++) {
-        const a = nodes[i]!, b = nodes[j]!;
-        const dx = b.x - a.x, dy = b.y - a.y;
-        const d2 = dx * dx + dy * dy + 1;
-        const d = Math.sqrt(d2);
-        const f = 8000 / d2;
-        const fx = (f * dx) / d, fy = (f * dy) / d;
-        a.vx -= fx; a.vy -= fy;
-        b.vx += fx; b.vy += fy;
-      }
-    }
-    for (const e of edges) {
-      const s = nodes.find((n) => n.id === e.source);
-      const t = nodes.find((n) => n.id === e.target);
-      if (!s || !t) continue;
-      const dx = t.x - s.x, dy = t.y - s.y;
-      const d = Math.sqrt(dx * dx + dy * dy) + 0.01;
-      const rest = e.kind === "linked" ? 110 : 140;
-      const k = e.kind === "linked" ? 0.06 : 0.035;
-      const f = k * (d - rest);
-      const fx = (f * dx) / d, fy = (f * dy) / d;
-      s.vx += fx; s.vy += fy;
-      t.vx -= fx; t.vy -= fy;
-    }
-    for (const n of nodes) {
-      n.vx += 0.0018 * (W / 2 - n.x);
-      n.vy += 0.0018 * (H / 2 - n.y);
-      n.vx *= 0.78;
-      n.vy *= 0.78;
-      n.x = Math.max(n.r + 16, Math.min(W - n.r - 16, n.x + n.vx));
-      n.y = Math.max(n.r + 16, Math.min(H - n.r - 16, n.y + n.vy));
-    }
-  }
-}
-
-function buildEdges(
-  tasks: ReturnType<typeof useApp>["tasks"],
-  notes: ReturnType<typeof useApp>["notes"],
-): GEdge[] {
-  const edges: GEdge[] = [];
-  tasks.forEach((task) => {
-    edges.push({ id: `et-${task.id}`, source: `task-${task.id}`, target: `cat-${task.category}`, kind: "cat" });
-    if (task.linkedNoteId) {
-      edges.push({ id: `el-${task.id}`, source: `task-${task.id}`, target: `note-${task.linkedNoteId}`, kind: "linked" });
-    }
-  });
-  notes.forEach((note) => {
-    const catKey = note.category === "ideas" || note.category === "journal" ? "personal" : note.category;
-    edges.push({ id: `en-${note.id}`, source: `note-${note.id}`, target: `cat-${catKey}`, kind: "cat" });
-  });
-  return edges;
-}
-
-function buildNodes(
-  tasks: ReturnType<typeof useApp>["tasks"],
-  notes: ReturnType<typeof useApp>["notes"],
-): GNode[] {
-  const nodes: GNode[] = [];
-  const cats = ["work", "focus", "personal", "health"] as const;
-  cats.forEach((cat, i) => {
-    const angle = (i / cats.length) * 2 * Math.PI - Math.PI / 2;
-    nodes.push({
-      id: `cat-${cat}`, type: "category",
-      label: cat.charAt(0).toUpperCase() + cat.slice(1),
-      category: cat, color: CAT_COLORS[cat]!,
-      x: W / 2 + 170 * Math.cos(angle), y: H / 2 + 160 * Math.sin(angle),
-      vx: 0, vy: 0, r: 28,
-    });
-  });
-  tasks.forEach((task, i) => {
-    const angle = (i / Math.max(tasks.length, 1)) * 2 * Math.PI;
-    const rad = 200 + (Math.sin(i * 3.7) * 0.5 + 0.5) * 120;
-    nodes.push({
-      id: `task-${task.id}`, type: "task",
-      label: task.text.length > 28 ? task.text.slice(0, 26) + "…" : task.text,
-      sublabel: task.time, category: task.category,
-      color: CAT_COLORS[task.category] ?? "#888",
-      x: W / 2 + rad * Math.cos(angle), y: H / 2 + rad * Math.sin(angle),
-      vx: 0, vy: 0, r: task.priority === "high" ? 15 : 12,
-      completed: task.completed, originalId: task.id,
-    });
-  });
-  notes.forEach((note, i) => {
-    const angle = ((i + 0.5) / Math.max(notes.length, 1)) * 2 * Math.PI + 0.4;
-    const rad = 180 + (Math.sin(i * 2.1) * 0.5 + 0.5) * 100;
-    nodes.push({
-      id: `note-${note.id}`, type: "note",
-      label: note.title.length > 22 ? note.title.slice(0, 20) + "…" : note.title,
-      category: note.category, color: "#9b8cc4",
-      x: W / 2 + rad * Math.cos(angle), y: H / 2 + rad * Math.sin(angle),
-      vx: 0, vy: 0, r: 11, pinned: note.pinned, originalId: note.id,
-    });
-  });
-  runSim(nodes, buildEdges(tasks, notes), 320);
-  return nodes;
-}
-
 export default function Graph() {
-  const { tasks, notes, addTask, linkTaskToNote } = useApp();
+  const { tasks, notes } = useApp();
+  const { theme } = useTheme();
   const navigate = useNavigate();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const engineRef = useRef<GraphEngine | null>(null);
 
-  // Nodes rebuilt only when count changes (preserves settled layout)
-  const initNodes = useMemo(
-    () => buildNodes(tasks, notes),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [tasks.length, notes.length],
-  );
-
-  // Edges rebuilt on any task/note change (catches linkedNoteId updates)
-  const edges = useMemo(() => buildEdges(tasks, notes), [tasks, notes]);
-
-  const [nodes, setNodes] = useState<GNode[]>(initNodes);
-  const [selected, setSelected] = useState<string | null>(null);
-  const [hovered, setHovered] = useState<string | null>(null);
-  const [zoom, setZoom] = useState(1);
-  const [pan, setPan] = useState({ x: 0, y: 0 });
-
-  // Link drag: drag from a node's "+" handle to another node to create a link
-  const [linkDrag, setLinkDrag] = useState<{
-    sourceId: string; curX: number; curY: number;
-  } | null>(null);
-
-  // Quick-create modal on double-click
-  const [createModal, setCreateModal] = useState<{
-    screenX: number; screenY: number; gx: number; gy: number;
-  } | null>(null);
-  const [newTaskText, setNewTaskText] = useState("");
-  const [newTaskCategory, setNewTaskCategory] = useState<TaskCategory>("work");
-  const newTaskInputRef = useRef<HTMLInputElement>(null);
-
-  const svgRef = useRef<SVGSVGElement>(null);
-  const dragNodeRef = useRef<{ id: string; ox: number; oy: number; mx: number; my: number } | null>(null);
-  const dragPanRef = useRef<{ mx: number; my: number; px: number; py: number } | null>(null);
-  const lastMouseRef = useRef<{ x: number; y: number } | null>(null);
-
-  // Used to position newly created nodes at the click location
-  const pendingPosRef = useRef<{ gx: number; gy: number } | null>(null);
-  const prevNodeIdsRef = useRef<Set<string>>(new Set<string>());
-
-  // Merge initNodes with current positions — preserve dragged positions, place new nodes at pendingPos
+  // Initialize engine once
   useEffect(() => {
-    const prevIds = prevNodeIdsRef.current;
-    const pendingPos = pendingPosRef.current;
-    pendingPosRef.current = null;
+    if (!canvasRef.current || !containerRef.current) return;
 
-    setNodes((prev) => {
-      const prevMap = new Map(prev.map((n) => [n.id, n]));
-      return initNodes.map((n) => {
-        if (!prevIds.has(n.id)) {
-          return pendingPos
-            ? { ...n, x: pendingPos.gx, y: pendingPos.gy, vx: 0, vy: 0 }
-            : n;
-        }
-        return prevMap.get(n.id) ?? n;
-      });
+    const engine = new GraphEngine(canvasRef.current);
+    engine.onSelect = (id) => setSelectedId(id);
+    engineRef.current = engine;
+
+    const ro = new ResizeObserver((entries) => {
+      const { width, height } = entries[0].contentRect;
+      engine.resize(width, height, window.devicePixelRatio || 1);
     });
+    ro.observe(containerRef.current);
 
-    prevNodeIdsRef.current = new Set(initNodes.map((n) => n.id));
-  }, [initNodes]);
-
-  const svgXY = useCallback(
-    (e: React.MouseEvent) => {
-      const svg = svgRef.current;
-      if (!svg) return { x: 0, y: 0 };
-      const rect = svg.getBoundingClientRect();
-      return {
-        x: (e.clientX - rect.left - pan.x) / zoom,
-        y: (e.clientY - rect.top - pan.y) / zoom,
-      };
-    },
-    [pan, zoom],
-  );
-
-  const focusId = selected ?? hovered;
-  const connectedIds = useMemo(() => {
-    if (!focusId) return new Set<string>();
-    const s = new Set<string>();
-    for (const e of edges) {
-      if (e.source === focusId) s.add(e.target);
-      if (e.target === focusId) s.add(e.source);
-    }
-    return s;
-  }, [focusId, edges]);
-
-  const handleNodeMouseDown = useCallback(
-    (e: React.MouseEvent, id: string) => {
-      e.stopPropagation();
-      const { x, y } = svgXY(e);
-      const node = nodes.find((n) => n.id === id)!;
-      lastMouseRef.current = { x, y };
-      dragNodeRef.current = { id, ox: node.x, oy: node.y, mx: x, my: y };
-    },
-    [nodes, svgXY],
-  );
-
-  const handleLinkHandleMouseDown = useCallback(
-    (e: React.MouseEvent, sourceId: string) => {
-      e.stopPropagation();
-      const { x, y } = svgXY(e);
-      setLinkDrag({ sourceId, curX: x, curY: y });
-    },
-    [svgXY],
-  );
-
-  const handleBgMouseDown = useCallback(
-    (e: React.MouseEvent) => {
-      if (dragNodeRef.current || linkDrag) return;
-      dragPanRef.current = { mx: e.clientX, my: e.clientY, px: pan.x, py: pan.y };
-      setSelected(null);
-    },
-    [pan, linkDrag],
-  );
-
-  const handleMouseMove = useCallback(
-    (e: React.MouseEvent) => {
-      if (linkDrag) {
-        const { x, y } = svgXY(e);
-        setLinkDrag((prev) => (prev ? { ...prev, curX: x, curY: y } : null));
-        return;
-      }
-
-      if (dragNodeRef.current) {
-        const { x, y } = svgXY(e);
-        const dx = x - dragNodeRef.current.mx;
-        const dy = y - dragNodeRef.current.my;
-
-        // Incremental delta for connected node soft-pull
-        const last = lastMouseRef.current ?? { x: dragNodeRef.current.mx, y: dragNodeRef.current.my };
-        const fdx = x - last.x;
-        const fdy = y - last.y;
-        lastMouseRef.current = { x, y };
-
-        const dragId = dragNodeRef.current.id;
-        const connected = new Set<string>();
-        for (const edge of edges) {
-          if (edge.source === dragId) connected.add(edge.target);
-          if (edge.target === dragId) connected.add(edge.source);
-        }
-
-        setNodes((prev) =>
-          prev.map((n) => {
-            if (n.id === dragId) {
-              return { ...n, x: dragNodeRef.current!.ox + dx, y: dragNodeRef.current!.oy + dy, vx: 0, vy: 0 };
-            }
-            if (connected.has(n.id)) {
-              return { ...n, x: n.x + fdx * 0.18, y: n.y + fdy * 0.18 };
-            }
-            return n;
-          }),
-        );
-      } else if (dragPanRef.current) {
-        const dx = e.clientX - dragPanRef.current.mx;
-        const dy = e.clientY - dragPanRef.current.my;
-        setPan({ x: dragPanRef.current.px + dx, y: dragPanRef.current.py + dy });
-      }
-    },
-    [edges, svgXY, linkDrag],
-  );
-
-  const handleMouseUp = useCallback(
-    (e: React.MouseEvent) => {
-      if (linkDrag) {
-        const { x, y } = svgXY(e);
-        const src = nodes.find((n) => n.id === linkDrag.sourceId);
-        if (src) {
-          const target = nodes.find((n) => {
-            if (n.id === linkDrag.sourceId || n.type === "category") return false;
-            return Math.hypot(x - n.x, y - n.y) < n.r + 12;
-          });
-          if (target) {
-            const srcIsTask = src.type === "task";
-            const tgtIsNote = target.type === "note";
-            const srcIsNote = src.type === "note";
-            const tgtIsTask = target.type === "task";
-            if ((srcIsTask && tgtIsNote) || (srcIsNote && tgtIsTask)) {
-              const taskId = srcIsTask ? src.originalId! : target.originalId!;
-              const noteId = tgtIsNote ? target.originalId! : src.originalId!;
-              linkTaskToNote(taskId, noteId);
-            }
-          }
-        }
-        setLinkDrag(null);
-        return;
-      }
-
-      if (dragNodeRef.current) {
-        const { x, y } = svgXY(e);
-        const dist = Math.hypot(x - dragNodeRef.current.mx, y - dragNodeRef.current.my);
-        if (dist < 4) {
-          const clickedId = dragNodeRef.current.id;
-          setSelected((s) => (s === clickedId ? null : clickedId));
-        }
-        dragNodeRef.current = null;
-        lastMouseRef.current = null;
-      }
-      dragPanRef.current = null;
-    },
-    [linkDrag, nodes, svgXY, linkTaskToNote],
-  );
-
-  const handleDoubleClick = useCallback(
-    (e: React.MouseEvent) => {
-      const svg = svgRef.current;
-      if (!svg) return;
-      const rect = svg.getBoundingClientRect();
-      const sx = e.clientX - rect.left;
-      const sy = e.clientY - rect.top;
-      const clamped = {
-        screenX: Math.min(sx, rect.width - 232),
-        screenY: Math.min(sy, rect.height - 208),
-        gx: (sx - pan.x) / zoom,
-        gy: (sy - pan.y) / zoom,
-      };
-      setCreateModal(clamped);
-      setNewTaskText("");
-      setNewTaskCategory("work");
-      setTimeout(() => newTaskInputRef.current?.focus(), 40);
-    },
-    [pan, zoom],
-  );
-
-  const handleCreateTask = useCallback(() => {
-    if (!newTaskText.trim() || !createModal) return;
-    pendingPosRef.current = { gx: createModal.gx, gy: createModal.gy };
-    addTask({
-      text: newTaskText.trim(),
-      completed: false,
-      priority: "medium",
-      category: newTaskCategory,
-    });
-    setCreateModal(null);
-    setNewTaskText("");
-  }, [newTaskText, newTaskCategory, createModal, addTask]);
-
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    e.preventDefault();
-    setZoom((z) => Math.max(0.25, Math.min(3, z * (e.deltaY > 0 ? 0.92 : 1.08))));
+    return () => {
+      ro.disconnect();
+      engine.destroy();
+    };
   }, []);
 
-  const selectedNode = selected ? nodes.find((n) => n.id === selected) : null;
-  const selectedTask = selectedNode?.type === "task"
-    ? tasks.find((t) => t.id === selectedNode.originalId)
-    : null;
-  const selectedNote = selectedNode?.type === "note"
-    ? notes.find((n) => n.id === selectedNode.originalId)
-    : null;
+  // Update data when tasks/notes change
+  useEffect(() => {
+    if (!engineRef.current) return;
 
-  // Determine valid link target during drag
-  const linkSrcNode = linkDrag ? nodes.find((n) => n.id === linkDrag.sourceId) : null;
-  const isValidLinkTarget = useCallback(
-    (nodeId: string) => {
-      if (!linkSrcNode) return false;
-      const node = nodes.find((n) => n.id === nodeId);
-      if (!node || node.type === "category" || nodeId === linkDrag?.sourceId) return false;
-      const srcIsTask = linkSrcNode.type === "task";
-      const nodeIsNote = node.type === "note";
-      const srcIsNote = linkSrcNode.type === "note";
-      const nodeIsTask = node.type === "task";
-      return (srcIsTask && nodeIsNote) || (srcIsNote && nodeIsTask);
-    },
-    [linkSrcNode, linkDrag, nodes],
-  );
+    const nodes: GNode[] = [];
+    const edges: GEdge[] = [];
+    
+    // 1. Dynamic Categories (Hubs)
+    const uniqueCats = new Set<string>();
+    tasks.forEach(t => uniqueCats.add(t.category));
+    notes.forEach(n => {
+      const catKey = n.category === "ideas" || n.category === "journal" ? "personal" : n.category;
+      uniqueCats.add(catKey);
+    });
+    
+    uniqueCats.forEach((cat) => {
+      nodes.push({
+        id: `cat-${cat}`, type: "category",
+        label: cat.charAt(0).toUpperCase() + cat.slice(1),
+        category: cat, color: CAT_COLORS[cat] || "#888",
+        r: 14,
+      });
+    });
+    
+    // 2. Tasks
+    tasks.forEach((task) => {
+      nodes.push({
+        id: `task-${task.id}`, type: "task",
+        label: task.text.length > 28 ? task.text.slice(0, 26) + "..." : task.text,
+        sublabel: task.time, category: task.category,
+        color: "#d4a853", // Task warm gold
+        r: task.priority === "high" ? 9 : 7,
+        completed: task.completed, originalId: task.id,
+      });
+      edges.push({ id: `et-${task.id}`, source: `task-${task.id}`, target: `cat-${task.category}`, kind: "cat" });
+      
+      if (task.linkedNoteId) {
+        edges.push({ id: `el-${task.id}`, source: `task-${task.id}`, target: `note-${task.linkedNoteId}`, kind: "linked" });
+      }
+    });
+    
+    // 3. Notes
+    notes.forEach((note) => {
+      nodes.push({
+        id: `note-${note.id}`, type: "note",
+        label: note.title.length > 22 ? note.title.slice(0, 20) + "..." : note.title,
+        category: note.category, color: "#9b8cc4", // Note violet
+        r: 7, pinned: note.pinned, originalId: note.id,
+      });
+      // Map ideas/journal to personal for graph clustering
+      const catKey = note.category === "ideas" || note.category === "journal" ? "personal" : note.category;
+      edges.push({ id: `en-${note.id}`, source: `note-${note.id}`, target: `cat-${catKey}`, kind: "cat" });
+    });
+
+    engineRef.current.setData(nodes, edges);
+    
+    // Pass external selection back to engine in case it was cleared by UI
+    if (engineRef.current.selectedId !== selectedId) {
+      engineRef.current.selectedId = selectedId;
+    }
+    
+    // Pass theme to engine and draw
+    engineRef.current.setTheme(theme);
+  }, [tasks, notes, selectedId, theme]);
+
+  // Derived selected details
+  const selectedNode = selectedId ? engineRef.current?.getNodes().find(n => n.id === selectedId) : null;
+  const taskDetails = selectedNode?.type === "task" ? tasks.find(t => t.id === selectedNode.originalId) : null;
+  const noteDetails = selectedNode?.type === "note" ? notes.find(n => n.id === selectedNode.originalId) : null;
 
   return (
-    <div className="flex h-full" style={{ color: "var(--foreground)" }}>
-
-      {/* Canvas */}
-      <div className="flex-1 relative overflow-hidden" style={{ background: "#090909" }}>
-
-        {/* Controls */}
-        <div className="absolute top-4 left-4 z-10 flex items-center gap-2">
-          <p className="font-mono-data text-xs tracking-widest uppercase mr-1" style={{ color: "var(--muted)" }}>Graph</p>
-          <button
-            onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }}
-            className="font-mono-data text-xs px-3 py-1.5 rounded-lg transition-colors duration-150"
-            style={{ background: "rgba(240,237,232,0.06)", color: "var(--muted)", border: "1px solid var(--card-border)" }}
-          >
-            Reset view
-          </button>
-          <button
-            onClick={() => setZoom((z) => Math.min(3, z * 1.2))}
-            className="w-7 h-7 flex items-center justify-center rounded-lg"
-            style={{ background: "rgba(240,237,232,0.06)", color: "var(--muted)", border: "1px solid var(--card-border)" }}
-          >
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-              <path d="M6 2v8M2 6h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-            </svg>
-          </button>
-          <button
-            onClick={() => setZoom((z) => Math.max(0.25, z * 0.8))}
-            className="w-7 h-7 flex items-center justify-center rounded-lg"
-            style={{ background: "rgba(240,237,232,0.06)", color: "var(--muted)", border: "1px solid var(--card-border)" }}
-          >
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-              <path d="M2 6h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-            </svg>
-          </button>
-          <span className="font-mono-data text-xs" style={{ color: "rgba(240,237,232,0.2)" }}>
-            {Math.round(zoom * 100)}%
-          </span>
+    <div className="flex h-full w-full" style={{ background: "var(--background)" }}>
+      <div ref={containerRef} className="flex-1 relative overflow-hidden">
+        <canvas
+          ref={canvasRef}
+          style={{ display: "block", outline: "none", touchAction: "none" }}
+        />
+        <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
+           <p className="font-mono-data text-xs tracking-widest uppercase" style={{ color: "var(--muted)" }}>
+             Graph
+           </p>
+           <button 
+             onClick={() => engineRef.current?.fitToView()}
+             className="w-fit font-mono-data text-xs px-3 py-1.5 rounded-lg transition-colors duration-150 hover:bg-white/5"
+             style={{ background: "color-mix(in srgb, var(--foreground) 6%, transparent)", color: "var(--muted)", border: "1px solid var(--card-border)" }}
+           >
+             Reset view
+           </button>
         </div>
-
-        {/* Legend */}
-        <div
-          className="absolute top-4 right-4 z-10 p-4 rounded-xl"
-          style={{ background: "rgba(14,14,14,0.92)", border: "1px solid var(--card-border)", backdropFilter: "blur(8px)" }}
-        >
-          <p className="font-mono-data text-xs tracking-widest uppercase mb-3" style={{ color: "var(--muted)" }}>Legend</p>
-          <div className="flex flex-col gap-2.5">
-            {[
-              { label: "Category hub", shape: "circle" as const, r: 11, color: "rgba(240,237,232,0.5)", stroke: true },
-              { label: "Task", shape: "circle" as const, r: 7, color: "#d4a853", stroke: false },
-              { label: "Note", shape: "diamond" as const, r: 6, color: "#9b8cc4", stroke: false },
-              { label: "Linked", shape: "line" as const, r: 0, color: "#9b8cc4", stroke: true },
-            ].map(({ label, shape, r, color, stroke }) => (
-              <div key={label} className="flex items-center gap-2.5">
-                <svg width="22" height="16">
-                  {shape === "circle" && (
-                    <circle cx="11" cy="8" r={r} fill={stroke ? "transparent" : color} stroke={stroke ? color : "rgba(240,237,232,0.1)"} strokeWidth={stroke ? 1.5 : 0} opacity={0.85} />
-                  )}
-                  {shape === "diamond" && (
-                    <rect x="7" y="4" width="8" height="8" transform="rotate(45 11 8)" fill={color} opacity={0.85} />
-                  )}
-                  {shape === "line" && (
-                    <line x1="1" y1="8" x2="21" y2="8" stroke={color} strokeWidth="1.5" strokeDasharray="4 2" opacity={0.7} />
-                  )}
-                </svg>
-                <span className="font-mono-data text-xs" style={{ color: "var(--muted)" }}>{label}</span>
-              </div>
-            ))}
-          </div>
-          <div className="mt-3 pt-3" style={{ borderTop: "1px solid var(--card-border)" }}>
-            <p className="font-mono-data text-xs" style={{ color: "rgba(240,237,232,0.18)" }}>
-              {nodes.length} nodes · {edges.length} edges
-            </p>
-          </div>
-        </div>
-
-        {/* Hints */}
-        <div className="absolute bottom-4 left-4 z-10 font-mono-data text-xs" style={{ color: "rgba(240,237,232,0.18)" }}>
-          drag to pan · scroll to zoom · click to inspect · dbl-click to create · drag{" "}
-          <span style={{ color: "rgba(240,237,232,0.4)" }}>+</span> to link
-        </div>
-
-        {/* SVG */}
-        <svg
-          ref={svgRef}
-          width="100%"
-          height="100%"
-          onMouseDown={handleBgMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
-          onWheel={handleWheel}
-          onDoubleClick={handleDoubleClick}
-          style={{
-            cursor: linkDrag ? "crosshair" : dragPanRef.current ? "grabbing" : "grab",
-            userSelect: "none",
-          }}
-        >
-          <defs>
-            <filter id="glow-sm" x="-60%" y="-60%" width="220%" height="220%">
-              <feGaussianBlur stdDeviation="3.5" result="blur" />
-              <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-            </filter>
-            <filter id="glow-lg" x="-100%" y="-100%" width="300%" height="300%">
-              <feGaussianBlur stdDeviation="7" result="blur" />
-              <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-            </filter>
-            <filter id="glow-target" x="-80%" y="-80%" width="260%" height="260%">
-              <feGaussianBlur stdDeviation="5" result="blur" />
-              <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-            </filter>
-            <pattern id="dot-grid" x="0" y="0" width="28" height="28" patternUnits="userSpaceOnUse">
-              <circle cx="14" cy="14" r="0.7" fill="rgba(240,237,232,0.055)" />
-            </pattern>
-          </defs>
-
-          <rect width="100%" height="100%" fill="url(#dot-grid)" />
-
-          <g transform={`translate(${pan.x},${pan.y}) scale(${zoom})`}>
-
-            {/* Edges */}
-            {edges.map((edge) => {
-              const s = nodes.find((n) => n.id === edge.source);
-              const t = nodes.find((n) => n.id === edge.target);
-              if (!s || !t) return null;
-
-              const isHighlit = focusId && (
-                edge.source === focusId || edge.target === focusId ||
-                connectedIds.has(edge.source) || connectedIds.has(edge.target)
-              );
-              const faded = focusId && !isHighlit;
-
-              return (
-                <line
-                  key={edge.id}
-                  x1={s.x} y1={s.y} x2={t.x} y2={t.y}
-                  stroke={edge.kind === "linked" ? "#9b8cc4" : "rgba(240,237,232,0.1)"}
-                  strokeWidth={isHighlit ? (edge.kind === "linked" ? 2 : 1.5) : (edge.kind === "linked" ? 1.2 : 0.7)}
-                  strokeDasharray={edge.kind === "linked" ? "5 3" : undefined}
-                  opacity={faded ? 0.04 : (isHighlit ? 1 : (edge.kind === "linked" ? 0.5 : 0.8))}
-                  style={{ transition: "opacity 0.16s ease, stroke-width 0.16s ease" }}
-                />
-              );
-            })}
-
-            {/* Pending link drag line */}
-            {linkDrag && linkSrcNode && (
-              <line
-                x1={linkSrcNode.x}
-                y1={linkSrcNode.y}
-                x2={linkDrag.curX}
-                y2={linkDrag.curY}
-                stroke={linkSrcNode.color}
-                strokeWidth={2 / zoom}
-                strokeDasharray={`${8 / zoom} ${4 / zoom}`}
-                opacity={0.75}
-                className="link-drag-line"
-                pointerEvents="none"
-              />
-            )}
-
-            {/* Source node pulse ring during link drag */}
-            {linkDrag && linkSrcNode && (
-              <circle
-                cx={linkSrcNode.x}
-                cy={linkSrcNode.y}
-                r={linkSrcNode.r + 10}
-                fill="none"
-                stroke={linkSrcNode.color}
-                strokeWidth={1.5 / zoom}
-                opacity={0.4}
-                style={{ animation: "graph-ring-pulse 1.2s ease-in-out infinite" }}
-                pointerEvents="none"
-              />
-            )}
-
-            {/* Nodes */}
-            {nodes.map((node) => {
-              const isSelected = selected === node.id;
-              const isHov = hovered === node.id;
-              const isConnected = connectedIds.has(node.id);
-              const isFocused = isSelected || isHov;
-              const isFaded = !!(focusId && !isFocused && !isConnected);
-              const validTarget = isValidLinkTarget(node.id);
-              const isLinkSrc = linkDrag?.sourceId === node.id;
-
-              return (
-                <g
-                  key={node.id}
-                  transform={`translate(${node.x},${node.y})`}
-                  style={{
-                    cursor: linkDrag
-                      ? (validTarget ? "cell" : (isLinkSrc ? "crosshair" : "default"))
-                      : "pointer",
-                    opacity: isFaded ? 0.1 : 1,
-                    transition: "opacity 0.16s ease",
-                  }}
-                  onMouseDown={(e) => handleNodeMouseDown(e, node.id)}
-                  onMouseEnter={() => setHovered(node.id)}
-                  onMouseLeave={() => setHovered(null)}
-                  onDoubleClick={(e) => {
-                    e.stopPropagation();
-                    if (node.type === "task") navigate("/dashboard/todos");
-                    else if (node.type === "note") navigate("/dashboard/notes");
-                  }}
-                >
-                  {/* Outer glow ring on focus */}
-                  {isFocused && !isLinkSrc && (
-                    <circle r={node.r + 8} fill={node.color} opacity={0.08} filter="url(#glow-lg)" />
-                  )}
-
-                  {/* Connected nodes subtle ring */}
-                  {isConnected && !isFocused && (
-                    <circle r={node.r + 4} fill={node.color} opacity={0.07} />
-                  )}
-
-                  {/* Valid link target highlight */}
-                  {validTarget && (
-                    <circle
-                      r={node.r + 9}
-                      fill={node.color}
-                      opacity={0.15}
-                      filter="url(#glow-target)"
-                      style={{ animation: "graph-ring-pulse 1s ease-in-out infinite" }}
-                    />
-                  )}
-
-                  {/* Selection pulse ring */}
-                  {isSelected && (
-                    <circle
-                      r={node.r + 5}
-                      fill="none"
-                      stroke={node.color}
-                      strokeWidth="1.5"
-                      opacity={0.5}
-                      style={{ animation: "graph-ring-pulse 2s ease-in-out infinite" }}
-                    />
-                  )}
-
-                  {/* Node shape */}
-                  {node.type === "note" ? (
-                    <rect
-                      x={-node.r * 0.8} y={-node.r * 0.8}
-                      width={node.r * 1.6} height={node.r * 1.6}
-                      transform="rotate(45)"
-                      fill={node.color}
-                      opacity={isFocused ? 1 : (node.completed ? 0.3 : 0.78)}
-                      stroke={isFocused ? "rgba(255,255,255,0.2)" : "transparent"}
-                      strokeWidth="1"
-                      filter={isFocused ? "url(#glow-sm)" : undefined}
-                    />
-                  ) : node.type === "category" ? (
-                    <>
-                      <circle r={node.r} fill="transparent" stroke={node.color}
-                        strokeWidth={isFocused ? 2.5 : 2}
-                        opacity={isFocused ? 1 : 0.7}
-                        filter={isFocused ? "url(#glow-sm)" : undefined}
-                      />
-                      <circle r={node.r - 5} fill={node.color} opacity={0.08} />
-                    </>
-                  ) : (
-                    <circle
-                      r={node.r}
-                      fill={node.color}
-                      opacity={isFocused ? 1 : (node.completed ? 0.3 : 0.82)}
-                      stroke={isFocused ? "rgba(255,255,255,0.15)" : "rgba(240,237,232,0.08)"}
-                      strokeWidth="1"
-                      filter={isFocused ? "url(#glow-sm)" : undefined}
-                    />
-                  )}
-
-                  {/* Completed checkmark */}
-                  {node.completed && node.type === "task" && (
-                    <path
-                      d="M-3 0L-1 2.5L3.5 -2"
-                      stroke="var(--green)"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      fill="none"
-                    />
-                  )}
-
-                  {/* Pin dot for notes */}
-                  {node.pinned && node.type === "note" && (
-                    <circle r="3" cx={node.r - 2} cy={-(node.r - 2)} fill="var(--accent)" />
-                  )}
-
-                  {/* Category label */}
-                  {node.type === "category" && (
-                    <text
-                      textAnchor="middle"
-                      dominantBaseline="middle"
-                      fontSize="10"
-                      fontFamily="JetBrains Mono, monospace"
-                      fontWeight="500"
-                      fill={node.color}
-                      letterSpacing="0.06em"
-                      opacity={isFocused ? 1 : 0.8}
-                    >
-                      {node.label}
-                    </text>
-                  )}
-
-                  {/* Floating label on hover/select/connected */}
-                  {(isFocused || isConnected) && node.type !== "category" && (
-                    <g transform={`translate(${node.r + 7}, 0)`}>
-                      <rect
-                        x={-3} y={-9}
-                        width={Math.min(node.label.length * 6 + 14, 210)}
-                        height={18}
-                        rx="4"
-                        fill="rgba(12,12,12,0.92)"
-                        stroke="rgba(240,237,232,0.08)"
-                        strokeWidth="0.5"
-                      />
-                      <text
-                        x={4}
-                        dominantBaseline="middle"
-                        fontSize="9.5"
-                        fontFamily="Inter, sans-serif"
-                        fill={isFocused ? "var(--foreground)" : "rgba(240,237,232,0.55)"}
-                        style={{ pointerEvents: "none" }}
-                      >
-                        {node.label}
-                      </text>
-                    </g>
-                  )}
-
-                  {/* Link connector handle — "+" dot on hover */}
-                  {isHov && node.type !== "category" && !linkDrag && (
-                    <g
-                      style={{ cursor: "crosshair" }}
-                      onMouseDown={(e) => handleLinkHandleMouseDown(e, node.id)}
-                    >
-                      {/* Larger invisible hit area */}
-                      <circle cx={node.r + 13} cy={0} r={10} fill="transparent" />
-                      {/* Visible dot */}
-                      <circle
-                        cx={node.r + 13} cy={0} r={5.5}
-                        fill="var(--background)"
-                        stroke={node.color}
-                        strokeWidth="1.5"
-                        opacity={0.95}
-                      />
-                      <text
-                        x={node.r + 10}
-                        y={4}
-                        fontSize="9"
-                        fontFamily="Inter, sans-serif"
-                        fontWeight="600"
-                        fill={node.color}
-                        style={{ pointerEvents: "none" }}
-                      >
-                        +
-                      </text>
-                    </g>
-                  )}
-                </g>
-              );
-            })}
-          </g>
-        </svg>
-
-        {/* Quick-create modal */}
-        <AnimatePresence>
-          {createModal && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.92, y: -6 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.92, y: -4 }}
-              transition={{ type: "spring", stiffness: 420, damping: 30 }}
-              className="absolute z-20 rounded-xl p-4"
-              style={{
-                left: createModal.screenX,
-                top: createModal.screenY,
-                width: 220,
-                background: "rgba(18,18,18,0.98)",
-                border: "1px solid var(--card-border)",
-                backdropFilter: "blur(16px)",
-                boxShadow: "0 16px 40px rgba(0,0,0,0.6)",
-              }}
-              onMouseDown={(e) => e.stopPropagation()}
-            >
-              <p
-                className="font-mono-data text-xs tracking-widest uppercase mb-3"
-                style={{ color: "var(--muted)" }}
-              >
-                New Task
-              </p>
-              <input
-                ref={newTaskInputRef}
-                className="add-input text-sm mb-3"
-                placeholder="What needs to be done?"
-                value={newTaskText}
-                onChange={(e) => setNewTaskText(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleCreateTask();
-                  if (e.key === "Escape") setCreateModal(null);
-                }}
-              />
-              <div className="flex items-center gap-1.5 mb-3">
-                {(["work", "focus", "personal", "health"] as const).map((cat) => (
-                  <button
-                    key={cat}
-                    onClick={() => setNewTaskCategory(cat)}
-                    title={cat}
-                    style={{
-                      width: 18, height: 18,
-                      borderRadius: "50%",
-                      background: CAT_COLORS[cat],
-                      opacity: newTaskCategory === cat ? 1 : 0.28,
-                      transform: newTaskCategory === cat ? "scale(1.25)" : "scale(1)",
-                      transition: "all 0.15s ease",
-                      border: "none",
-                      cursor: "pointer",
-                      flexShrink: 0,
-                    }}
-                  />
-                ))}
-                <span
-                  className="font-mono-data text-xs ml-1 capitalize"
-                  style={{ color: CAT_COLORS[newTaskCategory] }}
-                >
-                  {newTaskCategory}
-                </span>
-              </div>
-              <div className="flex items-center justify-end gap-2">
-                <button
-                  onClick={() => setCreateModal(null)}
-                  className="font-mono-data text-xs px-2 py-1 rounded-md"
-                  style={{ color: "var(--muted)" }}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleCreateTask}
-                  disabled={!newTaskText.trim()}
-                  className="font-mono-data text-xs px-3 py-1 rounded-md"
-                  style={{
-                    background: newTaskText.trim() ? CAT_COLORS[newTaskCategory] : "rgba(240,237,232,0.08)",
-                    color: newTaskText.trim() ? "#0c0c0c" : "rgba(240,237,232,0.2)",
-                    transition: "all 0.15s ease",
-                    cursor: newTaskText.trim() ? "pointer" : "default",
-                  }}
-                >
-                  Create
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
 
       {/* Detail panel */}
@@ -870,22 +147,15 @@ export default function Graph() {
             style={{ background: "var(--card)", borderLeft: "1px solid var(--card-border)" }}
           >
             <div className="p-5" style={{ width: "260px" }}>
-              {/* Header */}
               <div className="flex items-center justify-between mb-4">
-                <p
-                  className="font-mono-data text-xs tracking-widest uppercase"
-                  style={{ color: "var(--muted)" }}
-                >
+                <p className="font-mono-data text-xs tracking-widest uppercase" style={{ color: "var(--muted)" }}>
                   {selectedNode.type}
                 </p>
-                <button onClick={() => setSelected(null)} style={{ color: "var(--muted)" }}>
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                    <path d="M2 2l10 10M12 2L2 12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-                  </svg>
+                <button onClick={() => setSelectedId(null)} style={{ color: "var(--muted)" }}>
+                  X
                 </button>
               </div>
 
-              {/* Name */}
               <div className="flex items-start gap-3 mb-5">
                 <div
                   className="w-3 h-3 rounded-full flex-shrink-0 mt-1"
@@ -896,141 +166,67 @@ export default function Graph() {
                 </p>
               </div>
 
-              {/* Category badge */}
               <div className="mb-4">
-                <p
-                  className="font-mono-data text-xs tracking-widest uppercase mb-1"
-                  style={{ color: "var(--muted)" }}
-                >
-                  Category
-                </p>
-                <span
-                  className="font-mono-data text-xs px-2 py-1 rounded-full"
-                  style={{
-                    background: `${CAT_COLORS[selectedNode.category] ?? "#888"}18`,
-                    color: CAT_COLORS[selectedNode.category] ?? "#888",
-                    border: `1px solid ${CAT_COLORS[selectedNode.category] ?? "#888"}30`,
-                  }}
-                >
+                <p className="font-mono-data text-xs tracking-widest uppercase mb-1" style={{ color: "var(--muted)" }}>Category</p>
+                <span className="font-mono-data text-xs px-2 py-1 rounded-full" style={{ background: `${CAT_COLORS[selectedNode.category] ?? "#888"}18`, color: CAT_COLORS[selectedNode.category] ?? "#888", border: `1px solid ${CAT_COLORS[selectedNode.category] ?? "#888"}30` }}>
                   {selectedNode.category}
                 </span>
               </div>
 
-              {/* Task fields */}
-              {selectedTask && (
-                <>
-                  {selectedTask.time && (
-                    <div className="mb-4">
-                      <p className="font-mono-data text-xs tracking-widest uppercase mb-1" style={{ color: "var(--muted)" }}>Time</p>
-                      <p className="font-mono-data text-sm" style={{ color: "var(--foreground)" }}>{selectedTask.time}</p>
-                    </div>
-                  )}
-                  <div className="mb-4">
-                    <p className="font-mono-data text-xs tracking-widest uppercase mb-1" style={{ color: "var(--muted)" }}>Priority</p>
-                    <div className="flex items-center gap-1.5">
-                      <span
-                        className="w-2 h-2 rounded-full"
-                        style={{
-                          background: selectedTask.priority === "high"
-                            ? "#e07070"
-                            : selectedTask.priority === "medium"
-                              ? "var(--accent)"
-                              : "rgba(240,237,232,0.2)",
-                        }}
-                      />
-                      <span className="text-sm capitalize" style={{ color: "var(--foreground)" }}>{selectedTask.priority}</span>
-                    </div>
-                  </div>
-                  <div className="mb-5">
-                    <p className="font-mono-data text-xs tracking-widest uppercase mb-1" style={{ color: "var(--muted)" }}>Status</p>
-                    <span
-                      className="font-mono-data text-xs px-2 py-1 rounded-full"
-                      style={{
-                        background: selectedTask.completed ? "var(--green-dim)" : "rgba(212,168,83,0.1)",
-                        color: selectedTask.completed ? "var(--green)" : "var(--accent)",
-                        border: `1px solid ${selectedTask.completed ? "rgba(111,207,138,0.25)" : "rgba(212,168,83,0.2)"}`,
-                      }}
-                    >
-                      {selectedTask.completed ? "Completed ✓" : "In progress"}
-                    </span>
-                  </div>
-                  {selectedTask.linkedNoteId && (
-                    <div className="mb-4 px-3 py-2.5 rounded-lg" style={{ background: "rgba(155,140,196,0.08)", border: "1px solid rgba(155,140,196,0.15)" }}>
-                      <p className="font-mono-data text-xs" style={{ color: "#9b8cc4" }}>
-                        ◆ Linked note
-                      </p>
-                    </div>
-                  )}
-                  <button
+              {taskDetails && (
+                <div className="mt-8">
+                   <button
                     onClick={() => navigate("/dashboard/todos")}
                     className="w-full py-2 rounded-xl text-xs font-medium transition-all duration-150 hover:opacity-80"
                     style={{ background: "rgba(212,168,83,0.1)", color: "var(--accent)", border: "1px solid rgba(212,168,83,0.2)" }}
                   >
-                    Open in Tasks →
+                    Open in Tasks -&gt;
                   </button>
-                </>
+                </div>
               )}
-
-              {/* Note fields */}
-              {selectedNote && (
-                <>
+              {noteDetails && (
+                <div className="mt-8">
                   <div className="mb-4">
                     <p className="font-mono-data text-xs tracking-widest uppercase mb-1" style={{ color: "var(--muted)" }}>Preview</p>
-                    <p className="text-xs leading-relaxed line-clamp-2" style={{ color: "var(--muted)" }}>
-                      {selectedNote.content.slice(0, 100) || "Empty note"}
+                    <p className="text-xs leading-relaxed line-clamp-3" style={{ color: "var(--muted)" }}>
+                      {(() => {
+                        const content = noteDetails.content;
+                        if (!content) return "Empty note";
+                        if (typeof content === "string") {
+                          if (content.trim().startsWith("{")) {
+                            try {
+                              const parsed = JSON.parse(content);
+                              const extract = (node: any): string => {
+                                if (!node) return "";
+                                if (node.type === "text") return node.text || "";
+                                if (Array.isArray(node.content)) return node.content.map(extract).join(" ");
+                                return "";
+                              };
+                              return extract(parsed).slice(0, 100) || "Rich content note";
+                            } catch {
+                              return content.slice(0, 100);
+                            }
+                          }
+                          return content.slice(0, 100) || "Empty note";
+                        }
+                        const extract = (node: any): string => {
+                          if (!node) return "";
+                          if (node.type === "text") return node.text || "";
+                          if (Array.isArray(node.content)) return node.content.map(extract).join(" ");
+                          return "";
+                        };
+                        return extract(content).slice(0, 100) || "Rich content note";
+                      })()}
                     </p>
                   </div>
-                  <div className="mb-5">
-                    <p className="font-mono-data text-xs tracking-widest uppercase mb-1" style={{ color: "var(--muted)" }}>Last updated</p>
-                    <p className="font-mono-data text-xs" style={{ color: "var(--foreground)" }}>
-                      {new Date(selectedNote.updatedAt).toLocaleDateString("en", { month: "short", day: "numeric" })}
-                    </p>
-                  </div>
-                  {selectedNote.linkedTaskId && (
-                    <div className="mb-4 px-3 py-2.5 rounded-lg" style={{ background: "rgba(212,168,83,0.08)", border: "1px solid rgba(212,168,83,0.15)" }}>
-                      <p className="font-mono-data text-xs" style={{ color: "var(--accent)" }}>
-                        ● Linked task
-                      </p>
-                    </div>
-                  )}
                   <button
                     onClick={() => navigate("/dashboard/notes")}
                     className="w-full py-2 rounded-xl text-xs font-medium transition-all duration-150 hover:opacity-80"
                     style={{ background: "rgba(155,140,196,0.1)", color: "#9b8cc4", border: "1px solid rgba(155,140,196,0.2)" }}
                   >
-                    Open in Notes →
+                    Open in Notes -&gt;
                   </button>
-                </>
-              )}
-
-              {/* Category hub stats */}
-              {selectedNode.type === "category" && (
-                <>
-                  <div className="mb-4">
-                    <p className="font-mono-data text-xs tracking-widest uppercase mb-1" style={{ color: "var(--muted)" }}>Connected tasks</p>
-                    <p className="font-display text-2xl" style={{ color: selectedNode.color }}>
-                      {tasks.filter((t) => t.category === selectedNode.category).length}
-                    </p>
-                  </div>
-                  <div className="mb-5">
-                    <p className="font-mono-data text-xs tracking-widest uppercase mb-1" style={{ color: "var(--muted)" }}>Completed</p>
-                    <p className="font-display text-2xl" style={{ color: "var(--green)" }}>
-                      {tasks.filter((t) => t.category === selectedNode.category && t.completed).length}
-                    </p>
-                  </div>
-                  <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(240,237,232,0.07)" }}>
-                    <div
-                      className="h-full rounded-full"
-                      style={{
-                        width: `${tasks.filter((t) => t.category === selectedNode.category).length > 0
-                          ? (tasks.filter((t) => t.category === selectedNode.category && t.completed).length /
-                            tasks.filter((t) => t.category === selectedNode.category).length) * 100
-                          : 0}%`,
-                        background: selectedNode.color,
-                      }}
-                    />
-                  </div>
-                </>
+                </div>
               )}
             </div>
           </motion.div>
