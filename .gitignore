@@ -18,3 +18,14 @@ logs/
 # beside it.
 /.plugins/
 /.opencode-skills/
+
+# Debug logs & diagnostic dumps
+*_log*.txt
+last_log.txt
+graph_log*.txt
+recovery_*
+old_*.txt
+*.tmp
+.temp/
+supabase/.temp/
+
