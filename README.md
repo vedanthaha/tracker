@@ -1,12 +1,30 @@
 <div align="center">
 
-<img src="./public/DailysLogo.png" alt="Dailys Logo" width="96" height="96" />
+<br />
+
+<a href="#dailys">
+  <img src="./assets/readme/logo.png" alt="Dailys Logo" width="104" height="104" />
+</a>
 
 # **DAILYS**
 ### *The Minimal Productivity Workspace for Deep Work & Metrics*
 
 <p align="center">
   A distraction-free productivity environment uniting <b>daily execution</b>, <b>bi-directional knowledge</b>, <b>2D/3D force graphs</b>, and <b>outreach pipelines</b>.
+</p>
+
+<p align="center">
+  <a href="https://react.dev/"><img src="https://img.shields.io/badge/React-19.0-18181b?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React 19" /></a>
+  &nbsp;
+  <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-5.7-18181b?style=for-the-badge&logo=typescript&logoColor=3178C6" alt="TypeScript 5.7" /></a>
+  &nbsp;
+  <a href="https://vitejs.dev/"><img src="https://img.shields.io/badge/Vite-8.0-18181b?style=for-the-badge&logo=vite&logoColor=BD34FE" alt="Vite 8" /></a>
+  &nbsp;
+  <a href="https://tailwindcss.com/"><img src="https://img.shields.io/badge/Tailwind_CSS-v4.0-18181b?style=for-the-badge&logo=tailwindcss&logoColor=06B6D4" alt="Tailwind CSS v4" /></a>
+  &nbsp;
+  <a href="https://threejs.org/"><img src="https://img.shields.io/badge/Three.js-WebGL-18181b?style=for-the-badge&logo=three.js&logoColor=white" alt="Three.js" /></a>
+  &nbsp;
+  <a href="https://supabase.com/"><img src="https://img.shields.io/badge/Supabase-Auth_%26_DB-18181b?style=for-the-badge&logo=supabase&logoColor=3ECF8E" alt="Supabase" /></a>
 </p>
 
 <br />
@@ -16,19 +34,8 @@
 <br />
 <br />
 
-[![React](https://img.shields.io/badge/React-19.0-202020?style=flat-square&logo=react)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-202020?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
-[![Vite](https://img.shields.io/badge/Vite-8.0-202020?style=flat-square&logo=vite)](https://vitejs.dev/)
-[![Tailwind CSS v4](https://img.shields.io/badge/Tailwind_CSS-v4.0-202020?style=flat-square&logo=tailwindcss)](https://tailwindcss.com/)
-[![Three.js](https://img.shields.io/badge/Three.js-WebGL_Graph-202020?style=flat-square&logo=three.js)](https://threejs.org/)
-[![Supabase](https://img.shields.io/badge/Supabase-Database_&_Auth-202020?style=flat-square&logo=supabase)](https://supabase.com/)
+<img src="./assets/readme/work_deeply_banner.png" alt="work deeply." width="72%" />
 
-</div>
-
----
-
-<div align="center">
-  <img src="./assets/readme/work_deeply_banner.png" alt="work deeply." width="75%" />
 </div>
 
 ---
