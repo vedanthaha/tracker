@@ -106,7 +106,7 @@ interface AppContextType {
   createLinked: (
     task: Omit<Task, "id" | "createdAt" | "linkedNoteId">,
     noteTitle: string,
-  ) => { taskId: number noteId: number }
+  ) => { taskId: number; noteId: number }
 
   linkTaskToNote: (taskId: number, noteId: number) => void
 
@@ -123,7 +123,7 @@ interface AppContextType {
     password: string,
     name: string,
     captchaToken?: string,
-  ) => Promise<{ error?: string needsVerification?: boolean }>
+  ) => Promise<{ error?: string; needsVerification?: boolean }>
 
   signInWithOAuth: (provider: "google") => Promise<{ error?: string }>
 
@@ -135,11 +135,11 @@ interface AppContextType {
 
   // profile
 
-  updateProfile: (updates: { name?: string bio?: string }) => Promise<{
+  updateProfile: (updates: { name?: string; bio?: string }) => Promise<{
     error?: string
   }>
 
-  uploadAvatar: (file: File) => Promise<{ url?: string error?: string }>
+  uploadAvatar: (file: File) => Promise<{ url?: string; error?: string }>
 
   // layouts
 
@@ -360,7 +360,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     password: string,
     name: string,
     captchaToken?: string,
-  ): Promise<{ error?: string needsVerification?: boolean }> => {
+  ): Promise<{ error?: string; needsVerification?: boolean }> => {
     const { data, error } = await supabase.auth.signUp({
       email,
 
