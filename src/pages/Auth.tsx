@@ -1,137 +1,318 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Link, useNavigate, useLocation } from "react-router";
-import { motion, AnimatePresence } from "framer-motion";
-import { useApp } from "../context/AppContext";
-import { getStrength, validatePassword, requirements } from "../lib/passwordStrength";
+import React, { useState, useEffect, useRef } from "react"
+
+import { Link, useNavigate, useLocation } from "react-router"
+
+import { motion, AnimatePresence } from "framer-motion"
+
+import { useApp } from "../context/AppContext"
+
+import {
+  getStrength,
+  validatePassword,
+  requirements,
+} from "../lib/passwordStrength"
+
+import { turnstileSiteKey } from "../../utils/supabase/info"
 
 export default function Auth() {
-  const location = useLocation();
-  const isSignup = location.pathname === "/signup";
-  const navigate = useNavigate();
-  const { login, signup, signInWithOAuth, verifyOtp, resendOtp, user, loading: authLoading } = useApp();
+  const location = useLocation()
 
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const isSignup = location.pathname === "/signup"
+
+  const navigate = useNavigate()
+
+  const {
+    login,
+    signup,
+    signInWithOAuth,
+    verifyOtp,
+    resendOtp,
+    user,
+    loading: authLoading,
+  } = useApp()
+
+  const canvasRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
-    if (!authLoading && user) navigate("/dashboard", { replace: true });
-  }, [user, authLoading, navigate]);
+    if (!authLoading && user) navigate("/dashboard", { replace: true })
+  }, [user, authLoading, navigate])
 
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPw, setShowPw] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [needsVerification, setNeedsVerification] = useState(false);
+  const [name, setName] = useState("")
+
+  const [email, setEmail] = useState("")
+
+  const [password, setPassword] = useState("")
+
+  const [showPw, setShowPw] = useState(false)
+
+  const [loading, setLoading] = useState(false)
+
+  const [error, setError] = useState("")
+
+  const [needsVerification, setNeedsVerification] = useState(false)
+
+  // Turnstile state
+
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+
+  const turnstileContainerRef = useRef<HTMLDivElement>(null)
+
+  const widgetIdRef = useRef<string | null>(null)
 
   // OTP state
-  const [otp, setOtp] = useState("");
-  const [otpLoading, setOtpLoading] = useState(false);
-  const [otpError, setOtpError] = useState("");
-  const [cooldown, setCooldown] = useState(30);
-  const [resending, setResending] = useState(false);
-  const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const [otp, setOtp] = useState("")
+
+  const [otpLoading, setOtpLoading] = useState(false)
+
+  const [otpError, setOtpError] = useState("")
+
+  const [cooldown, setCooldown] = useState(30)
+
+  const [resending, setResending] = useState(false)
+
+  const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   // Three.js background
   // Removed THREE.js background effect
 
   useEffect(() => {
-    if (!needsVerification) return;
-    setCooldown(30);
-    if (cooldownRef.current) clearInterval(cooldownRef.current);
+    if (!needsVerification) return
+
+    setCooldown(30)
+
+    if (cooldownRef.current) clearInterval(cooldownRef.current)
+
     cooldownRef.current = setInterval(() => {
       setCooldown((c) => {
         if (c <= 1) {
-          if (cooldownRef.current) clearInterval(cooldownRef.current);
-          return 0;
+          if (cooldownRef.current) clearInterval(cooldownRef.current)
+
+          return 0
         }
-        return c - 1;
-      });
-    }, 1000);
+
+        return c - 1
+      })
+    }, 1000)
+
     return () => {
-      if (cooldownRef.current) clearInterval(cooldownRef.current);
-    };
-  }, [needsVerification]);
+      if (cooldownRef.current) clearInterval(cooldownRef.current)
+    }
+  }, [needsVerification])
 
   const handleResend = async () => {
-    if (cooldown > 0 || resending) return;
-    setResending(true);
-    setOtpError("");
-    const { error: err } = await resendOtp(email);
-    setResending(false);
+    if (cooldown > 0 || resending) return
+
+    setResending(true)
+
+    setOtpError("")
+
+    const { error: err } = await resendOtp(email)
+
+    setResending(false)
+
     if (err) {
-      setOtpError(err);
-      return;
+      setOtpError(err)
+
+      return
     }
-    setCooldown(30);
-    if (cooldownRef.current) clearInterval(cooldownRef.current);
+
+    setCooldown(30)
+
+    if (cooldownRef.current) clearInterval(cooldownRef.current)
+
     cooldownRef.current = setInterval(() => {
       setCooldown((c) => {
         if (c <= 1) {
-          if (cooldownRef.current) clearInterval(cooldownRef.current);
-          return 0;
+          if (cooldownRef.current) clearInterval(cooldownRef.current)
+
+          return 0
         }
-        return c - 1;
-      });
-    }, 1000);
-  };
+
+        return c - 1
+      })
+    }, 1000)
+  }
 
   const handleVerify = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
+
     if (otp.length !== 8) {
-      setOtpError("Enter 8-digit code");
-      return;
+      setOtpError("Enter 8-digit code")
+
+      return
     }
-    setOtpLoading(true);
-    setOtpError("");
-    const { error: err } = await verifyOtp(email, otp);
-    setOtpLoading(false);
+
+    setOtpLoading(true)
+
+    setOtpError("")
+
+    const { error: err } = await verifyOtp(email, otp)
+
+    setOtpLoading(false)
+
     if (err) {
-      setOtpError(err);
-      return;
+      setOtpError(err)
+
+      return
     }
-    navigate("/dashboard");
-  };
+
+    navigate("/dashboard")
+  }
+
+  // Cloudflare Turnstile lifecycle
+
+  useEffect(() => {
+    if (needsVerification || !turnstileSiteKey) return
+
+    let isMounted = true
+
+    const renderWidget = () => {
+      if (
+        !isMounted ||
+        !turnstileContainerRef.current ||
+        !(window as any).turnstile
+      )
+        return
+
+      try {
+        if (widgetIdRef.current) {
+          ;(window as any).turnstile.remove(widgetIdRef.current)
+
+          widgetIdRef.current = null
+        }
+
+        setCaptchaToken(null)
+
+        widgetIdRef.current = (window as any).turnstile.render(
+          turnstileContainerRef.current,
+          {
+            sitekey: turnstileSiteKey,
+
+            theme: "dark",
+
+            callback: (token: string) => {
+              if (isMounted) setCaptchaToken(token)
+            },
+
+            "expired-callback": () => {
+              if (isMounted) setCaptchaToken(null)
+            },
+
+            "error-callback": () => {
+              if (isMounted) setCaptchaToken(null)
+            },
+          },
+        )
+      } catch (err) {
+        console.error("Turnstile render error:", err)
+      }
+    }
+
+    if ((window as any).turnstile?.render) {
+      renderWidget()
+    } else {
+      const timer = setInterval(() => {
+        if ((window as any).turnstile?.render) {
+          clearInterval(timer)
+
+          renderWidget()
+        }
+      }, 100)
+
+      return () => {
+        isMounted = false
+
+        clearInterval(timer)
+
+        if (widgetIdRef.current && (window as any).turnstile) {
+          try {
+            ;(window as any).turnstile.remove(widgetIdRef.current)
+
+            widgetIdRef.current = null
+          } catch {}
+        }
+      }
+    }
+
+    return () => {
+      isMounted = false
+
+      if (widgetIdRef.current && (window as any).turnstile) {
+        try {
+          ;(window as any).turnstile.remove(widgetIdRef.current)
+
+          widgetIdRef.current = null
+        } catch {}
+      }
+    }
+  }, [isSignup, needsVerification])
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
+    e.preventDefault()
+
+    setError("")
 
     if (isSignup) {
-      const pwErr = validatePassword(password);
+      const pwErr = validatePassword(password)
+
       if (pwErr) {
-        setError(pwErr);
-        return;
+        setError(pwErr)
+
+        return
       }
     }
 
-    setLoading(true);
+    setLoading(true)
+
+    const resetCaptcha = () => {
+      if (widgetIdRef.current && (window as any).turnstile) {
+        try {
+          ;(window as any).turnstile.reset(widgetIdRef.current)
+        } catch {}
+      }
+
+      setCaptchaToken(null)
+    }
 
     if (isSignup) {
-      const res = await signup(email, password, name);
+      const res = await signup(email, password, name, captchaToken || undefined)
+
       if (res.error) {
-        setError(res.error);
-        setLoading(false);
-        return;
+        setError(res.error)
+
+        setLoading(false)
+
+        resetCaptcha()
+
+        return
       }
+
       if (res.needsVerification) {
-        setNeedsVerification(true);
-        setLoading(false);
-        return;
+        setNeedsVerification(true)
+
+        setLoading(false)
+
+        return
       }
     } else {
-      const res = await login(email, password);
+      const res = await login(email, password, captchaToken || undefined)
+
       if (res.error) {
-        setError(res.error);
-        setLoading(false);
-        return;
+        setError(res.error)
+
+        setLoading(false)
+
+        resetCaptcha()
+
+        return
       }
     }
 
-    navigate("/dashboard");
-  };
+    navigate("/dashboard")
+  }
 
-  const strength = getStrength(password);
+  const strength = getStrength(password)
 
   return (
     <div className="min-h-screen w-full flex flex-col lg:flex-row bg-black relative">
@@ -152,14 +333,18 @@ export default function Auth() {
       {/* Left Side - Visual/Copy */}
       <div className="hidden lg:flex flex-1 relative z-10 flex-col items-center justify-center px-8 text-center pointer-events-none">
         <div className="max-w-lg">
-          <motion.h2 
-            initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}
+          <motion.h2
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
             className="text-4xl md:text-5xl font-display text-white mb-6 leading-tight tracking-tight"
           >
             You're 2 clicks away from your best workflow.
           </motion.h2>
-          <motion.p 
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.4 }}
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
             className="text-white font-mono-data text-sm tracking-wide"
           >
             Track daily progress effortlessly without the noise.
@@ -168,23 +353,36 @@ export default function Auth() {
       </div>
 
       {/* Right Side - Form */}
-      <div 
+      <div
         className="w-full lg:w-[480px] xl:w-[520px] flex-shrink-0 min-h-screen relative z-10 flex flex-col justify-center px-8 sm:px-12 py-12 overflow-y-auto"
-        style={{ background: "var(--background)", borderLeft: "1px solid #222" }}
+        style={{
+          background: "var(--background)",
+          borderLeft: "1px solid #222",
+        }}
       >
         <div className="w-full max-w-sm mx-auto">
-          
           {/* Logo */}
           <motion.div
-            initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.32, ease: "easeOut" }}
+            initial={{ opacity: 0, y: -16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.32, ease: "easeOut" }}
             className="mb-10"
           >
-            <Link to="/" className="flex items-center gap-3" style={{ textDecoration: "none" }}>
+            <Link
+              to="/"
+              className="flex items-center gap-3"
+              style={{ textDecoration: "none" }}
+            >
               <motion.div
-                whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 className="h-12 rounded-lg flex items-center justify-center"
               >
-                <img src="/dailyss-logo.png" alt="Dailys" className="h-full w-auto object-contain" />
+                <img
+                  src="/dailyss-logo.png"
+                  alt="Dailys"
+                  className="h-full w-auto object-contain"
+                />
               </motion.div>
             </Link>
           </motion.div>
@@ -201,12 +399,23 @@ export default function Auth() {
                 style={{ background: "#111", border: "1px solid #222" }}
               >
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                  <path
+                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                  />
                 </svg>
               </div>
-              <h2 className="font-display text-3xl mb-3 text-white">Verify your email</h2>
-              <p className="text-sm leading-relaxed mb-1" style={{ color: "#888" }}>
-                We sent an 8-digit code to <strong className="text-white">{email}</strong>.
+              <h2 className="font-display text-3xl mb-3 text-white">
+                Verify your email
+              </h2>
+              <p
+                className="text-sm leading-relaxed mb-1"
+                style={{ color: "#888" }}
+              >
+                We sent an 8-digit code to{" "}
+                <strong className="text-white">{email}</strong>.
               </p>
               <p className="text-xs mb-8" style={{ color: "#666" }}>
                 Enter it below or click the link in the email.
@@ -215,35 +424,55 @@ export default function Auth() {
               <form onSubmit={handleVerify} className="flex flex-col gap-4">
                 <input
                   value={otp}
-                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 8))}
+                  onChange={(e) =>
+                    setOtp(e.target.value.replace(/\D/g, "").slice(0, 8))
+                  }
                   placeholder="12345678"
                   inputMode="numeric"
                   autoComplete="one-time-code"
                   maxLength={8}
                   className="w-full px-4 py-4 rounded-xl text-center text-xl tracking-[0.3em] outline-none transition-all duration-150"
-                  style={{ background: "#111", border: "1px solid #333", color: "white", letterSpacing: "0.3em" }}
+                  style={{
+                    background: "#111",
+                    border: "1px solid #333",
+                    color: "white",
+                    letterSpacing: "0.3em",
+                  }}
                   onFocus={(e) => (e.target.style.borderColor = "#666")}
                   onBlur={(e) => (e.target.style.borderColor = "#333")}
                 />
                 <AnimatePresence>
                   {otpError && (
                     <motion.div
-                      initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
+                      initial={{ opacity: 0, y: -6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -6 }}
                       className="text-sm px-4 py-3 rounded-lg"
-                      style={{ background: "rgba(255,80,80,0.1)", color: "rgba(255,100,100,0.9)", border: "1px solid rgba(255,80,80,0.2)" }}
+                      style={{
+                        background: "rgba(255,80,80,0.1)",
+                        color: "rgba(255,100,100,0.9)",
+                        border: "1px solid rgba(255,80,80,0.2)",
+                      }}
                     >
                       {otpError}
                     </motion.div>
                   )}
                 </AnimatePresence>
                 <motion.button
-                  whileHover={{ scale: otpLoading ? 1 : 1.02 }} whileTap={{ scale: otpLoading ? 1 : 0.98 }}
+                  whileHover={{ scale: otpLoading ? 1 : 1.02 }}
+                  whileTap={{ scale: otpLoading ? 1 : 0.98 }}
                   type="submit"
                   disabled={otpLoading}
                   className="w-full py-4 rounded-xl font-medium text-base flex items-center justify-center gap-2 mt-2"
-                  style={{ background: "white", color: "black", opacity: otpLoading ? 0.7 : 1 }}
+                  style={{
+                    background: "white",
+                    color: "black",
+                    opacity: otpLoading ? 0.7 : 1,
+                  }}
                 >
-                  {otpLoading && <span className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />}
+                  {otpLoading && (
+                    <span className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                  )}
                   {otpLoading ? "Verifying..." : "Verify code"}
                 </motion.button>
               </form>
@@ -255,18 +484,34 @@ export default function Auth() {
                   className="text-sm py-3 rounded-xl transition-all"
                   style={{
                     background: cooldown > 0 ? "transparent" : "#111",
+
                     color: cooldown > 0 ? "#666" : "white",
-                    border: cooldown > 0 ? "1px solid transparent" : "1px solid #333",
+
+                    border:
+                      cooldown > 0 ? "1px solid transparent" : "1px solid #333",
+
                     opacity: cooldown > 0 || resending ? 0.6 : 1,
-                    cursor: cooldown > 0 || resending ? "not-allowed" : "pointer",
+
+                    cursor:
+                      cooldown > 0 || resending ? "not-allowed" : "pointer",
                   }}
                 >
-                  {resending ? "Sending..." : cooldown > 0 ? `Resend in ${cooldown}s` : "Resend code"}
+                  {resending
+                    ? "Sending..."
+                    : cooldown > 0
+                      ? `Resend in ${cooldown}s`
+                      : "Resend code"}
                 </button>
                 <button
                   onClick={() => setNeedsVerification(false)}
                   className="text-sm hover:opacity-80 transition-opacity mt-2"
-                  style={{ color: "#888", textDecoration: "none", background: "none", border: "none", cursor: "pointer" }}
+                  style={{
+                    color: "#888",
+                    textDecoration: "none",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                  }}
                 >
                   Back to sign in
                 </button>
@@ -276,7 +521,9 @@ export default function Auth() {
             <>
               {/* Header */}
               <motion.div
-                initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.32, delay: 0.1 }}
+                initial={{ opacity: 0, x: 16 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.32, delay: 0.1 }}
                 className="mb-8"
               >
                 <h1 className="font-display text-4xl mb-3 text-white">
@@ -290,32 +537,64 @@ export default function Auth() {
               </motion.div>
 
               <motion.div
-                initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.32, delay: 0.15 }}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.32, delay: 0.15 }}
               >
                 {/* OAuth */}
                 <motion.button
-                  whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.99 }}
                   type="button"
                   onClick={async () => {
-                    setError("");
-                    const { error: oauthError } = await signInWithOAuth("google");
-                    if (oauthError) setError(oauthError);
+                    setError("")
+
+                    const { error: oauthError } =
+                      await signInWithOAuth("google")
+
+                    if (oauthError) setError(oauthError)
                   }}
                   className="w-full py-3.5 rounded-xl font-medium text-sm flex items-center justify-center gap-3 transition-all duration-150"
-                  style={{ background: "#111", color: "white", border: "1px solid #333" }}
+                  style={{
+                    background: "#111",
+                    color: "white",
+                    border: "1px solid #333",
+                  }}
                 >
-                  <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
-                    <path fill="#EA4335" d="M24 24.5v8.3H34.1c-.4 2.1-2.1 3.9-4.4 4.9l7.1 5.5c4.1-3.8 6.5-9.4 6.5-16 0-1.5-.1-2.9-.4-4.3H24z" />
-                    <path fill="#4285F4" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.1-5.5c-2 1.3-4.5 2.1-8.8 2.1-6.7 0-12.4-4.5-14.4-10.6L2.2 33.5C4.2 42.1 13.5 48 24 48z" />
-                    <path fill="#FBBC05" d="M9.6 28.2A14.9 14.9 0 019 24c0-1.5.2-3 .6-4.2L2.2 14.5A23 23 0 000 24c0 3.7.9 7.2 2.2 10.2l7.4-6z" />
-                    <path fill="#34A853" d="M24 14c3.6 0 6.8 1.2 9.3 3.2l6.9-6.9C36.2 6.1 30.6 4 24 4 13.5 4 4.2 9.9 2.2 14.5l7.4 5.7C11.6 14.1 17.3 14 24 14z" />
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 48 48"
+                    aria-hidden="true"
+                  >
+                    <path
+                      fill="#EA4335"
+                      d="M24 24.5v8.3H34.1c-.4 2.1-2.1 3.9-4.4 4.9l7.1 5.5c4.1-3.8 6.5-9.4 6.5-16 0-1.5-.1-2.9-.4-4.3H24z"
+                    />
+                    <path
+                      fill="#4285F4"
+                      d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.1-5.5c-2 1.3-4.5 2.1-8.8 2.1-6.7 0-12.4-4.5-14.4-10.6L2.2 33.5C4.2 42.1 13.5 48 24 48z"
+                    />
+                    <path
+                      fill="#FBBC05"
+                      d="M9.6 28.2A14.9 14.9 0 019 24c0-1.5.2-3 .6-4.2L2.2 14.5A23 23 0 000 24c0 3.7.9 7.2 2.2 10.2l7.4-6z"
+                    />
+                    <path
+                      fill="#34A853"
+                      d="M24 14c3.6 0 6.8 1.2 9.3 3.2l6.9-6.9C36.2 6.1 30.6 4 24 4 13.5 4 4.2 9.9 2.2 14.5l7.4 5.7C11.6 14.1 17.3 14 24 14z"
+                    />
                   </svg>
                   Continue with Google
                 </motion.button>
 
                 <div className="flex items-center gap-3 my-6">
                   <div className="flex-1 h-px" style={{ background: "#222" }} />
-                  <span className="font-mono-data text-xs" style={{ color: "#666" }}>or</span>
+                  <span
+                    className="font-mono-data text-xs"
+                    style={{ color: "#666" }}
+                  >
+                    or
+                  </span>
                   <div className="flex-1 h-px" style={{ background: "#222" }} />
                 </div>
 
@@ -324,11 +603,16 @@ export default function Auth() {
                     {isSignup && (
                       <motion.div
                         key="name"
-                        initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
                         transition={{ duration: 0.22 }}
                         style={{ overflow: "hidden" }}
                       >
-                        <label className="font-mono-data text-xs tracking-widest uppercase block mb-1.5" style={{ color: "#888" }}>
+                        <label
+                          className="font-mono-data text-xs tracking-widest uppercase block mb-1.5"
+                          style={{ color: "#888" }}
+                        >
                           Full Name
                         </label>
                         <input
@@ -340,7 +624,11 @@ export default function Auth() {
                           placeholder="Jane Smith"
                           required={isSignup}
                           className="w-full px-4 py-3.5 rounded-xl text-sm outline-none transition-all duration-150"
-                          style={{ background: "#111", border: "1px solid #222", color: "white" }}
+                          style={{
+                            background: "#111",
+                            border: "1px solid #222",
+                            color: "white",
+                          }}
                           onFocus={(e) => (e.target.style.borderColor = "#666")}
                           onBlur={(e) => (e.target.style.borderColor = "#222")}
                         />
@@ -349,7 +637,10 @@ export default function Auth() {
                   </AnimatePresence>
 
                   <div>
-                    <label className="font-mono-data text-xs tracking-widest uppercase block mb-1.5" style={{ color: "#888" }}>
+                    <label
+                      className="font-mono-data text-xs tracking-widest uppercase block mb-1.5"
+                      style={{ color: "#888" }}
+                    >
                       Email
                     </label>
                     <input
@@ -361,14 +652,21 @@ export default function Auth() {
                       placeholder="you@example.com"
                       required
                       className="w-full px-4 py-3.5 rounded-xl text-sm outline-none transition-all duration-150"
-                      style={{ background: "#111", border: "1px solid #222", color: "white" }}
+                      style={{
+                        background: "#111",
+                        border: "1px solid #222",
+                        color: "white",
+                      }}
                       onFocus={(e) => (e.target.style.borderColor = "#666")}
                       onBlur={(e) => (e.target.style.borderColor = "#222")}
                     />
                   </div>
 
                   <div>
-                    <label className="font-mono-data text-xs tracking-widest uppercase block mb-1.5" style={{ color: "#888" }}>
+                    <label
+                      className="font-mono-data text-xs tracking-widest uppercase block mb-1.5"
+                      style={{ color: "#888" }}
+                    >
                       Password
                     </label>
                     <div className="relative">
@@ -382,7 +680,11 @@ export default function Auth() {
                         required
                         minLength={8}
                         className="w-full px-4 py-3.5 pr-10 rounded-xl text-sm outline-none transition-all duration-150"
-                        style={{ background: "#111", border: "1px solid #222", color: "white" }}
+                        style={{
+                          background: "#111",
+                          border: "1px solid #222",
+                          color: "white",
+                        }}
                         onFocus={(e) => (e.target.style.borderColor = "#666")}
                         onBlur={(e) => (e.target.style.borderColor = "#222")}
                       />
@@ -390,7 +692,12 @@ export default function Auth() {
                         type="button"
                         onClick={() => setShowPw((v) => !v)}
                         className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-medium"
-                        style={{ color: "#888", background: "none", border: "none", cursor: "pointer" }}
+                        style={{
+                          color: "#888",
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                        }}
                       >
                         {showPw ? "Hide" : "Show"}
                       </button>
@@ -403,30 +710,51 @@ export default function Auth() {
                             <div
                               key={i}
                               className="h-1 flex-1 rounded-full transition-colors duration-200"
-                              style={{ background: i < strength.score ? strength.color : "#222" }}
+                              style={{
+                                background:
+                                  i < strength.score ? strength.color : "#222",
+                              }}
                             />
                           ))}
                         </div>
                         <div className="flex items-center justify-between mb-2">
-                          <span className="font-mono-data text-xs" style={{ color: strength.color }}>{strength.label}</span>
-                          <span className="font-mono-data text-xs" style={{ color: "#666" }}>{password.length}/8 min</span>
+                          <span
+                            className="font-mono-data text-xs"
+                            style={{ color: strength.color }}
+                          >
+                            {strength.label}
+                          </span>
+                          <span
+                            className="font-mono-data text-xs"
+                            style={{ color: "#666" }}
+                          >
+                            {password.length}/8 min
+                          </span>
                         </div>
                         <div className="flex flex-wrap gap-1.5">
                           {requirements.map((r) => {
-                            const ok = r.test(password);
+                            const ok = r.test(password)
+
                             return (
                               <span
                                 key={r.label}
                                 className="font-mono-data text-[10px] px-2 py-1 rounded-full transition-colors"
                                 style={{
-                                  background: ok ? "rgba(111,207,138,0.1)" : "#111",
+                                  background: ok
+                                    ? "rgba(111,207,138,0.1)"
+                                    : "#111",
+
                                   color: ok ? "#6fcf8a" : "#666",
-                                  border: `1px solid ${ok ? "rgba(111,207,138,0.2)" : "#222"}`,
+
+                                  border: `1px solid ${
+                                    ok ? "rgba(111,207,138,0.2)" : "#222"
+                                  }`,
                                 }}
                               >
-                                {ok ? "✓ " : ""}{r.label}
+                                {ok ? "✓ " : ""}
+                                {r.label}
                               </span>
-                            );
+                            )
                           })}
                         </div>
                       </div>
@@ -435,19 +763,34 @@ export default function Auth() {
 
                   {!isSignup && (
                     <div className="flex justify-end -mt-2">
-                      <a href="#" className="text-xs hover:opacity-80 transition-opacity" style={{ color: "#888", textDecoration: "none" }}>
+                      <a
+                        href="#"
+                        className="text-xs hover:opacity-80 transition-opacity"
+                        style={{ color: "#888", textDecoration: "none" }}
+                      >
                         Forgot password?
                       </a>
                     </div>
                   )}
 
+                  {/* Cloudflare Turnstile */}
+                  <div className="flex justify-center my-2 min-h-[65px] items-center">
+                    <div ref={turnstileContainerRef} />
+                  </div>
+
                   {/* Error */}
                   <AnimatePresence>
                     {error && (
                       <motion.div
-                        initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
+                        initial={{ opacity: 0, y: -6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -6 }}
                         className="text-sm px-4 py-3 rounded-xl mt-1"
-                        style={{ background: "rgba(255,80,80,0.1)", color: "rgba(255,100,100,0.9)", border: "1px solid rgba(255,80,80,0.2)" }}
+                        style={{
+                          background: "rgba(255,80,80,0.1)",
+                          color: "rgba(255,100,100,0.9)",
+                          border: "1px solid rgba(255,80,80,0.2)",
+                        }}
                       >
                         {error}
                       </motion.div>
@@ -455,31 +798,59 @@ export default function Auth() {
                   </AnimatePresence>
 
                   <motion.button
-                    initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.38, duration: 0.22 }}
-                    whileHover={{ scale: loading ? 1 : 1.02 }} whileTap={{ scale: loading ? 1 : 0.98 }}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.38, duration: 0.22 }}
+                    whileHover={{ scale: loading ? 1 : 1.02 }}
+                    whileTap={{ scale: loading ? 1 : 0.98 }}
                     type="submit"
                     disabled={loading}
                     className="mt-2 w-full py-4 rounded-xl font-medium text-base transition-all duration-150 flex items-center justify-center gap-2"
                     style={{
                       background: loading ? "#222" : "white",
+
                       color: loading ? "#888" : "black",
                     }}
                   >
                     {loading && (
-                      <svg className="animate-spin" width="16" height="16" viewBox="0 0 14 14" fill="none">
-                        <circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.5" strokeDasharray="10 24" />
+                      <svg
+                        className="animate-spin"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 14 14"
+                        fill="none"
+                      >
+                        <circle
+                          cx="7"
+                          cy="7"
+                          r="5.5"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          strokeDasharray="10 24"
+                        />
                       </svg>
                     )}
-                    {loading ? "Please wait..." : isSignup ? "Create account" : "Sign in"}
+                    {loading
+                      ? "Please wait..."
+                      : isSignup
+                        ? "Create account"
+                        : "Sign in"}
                   </motion.button>
                 </form>
 
-                <p className="text-sm text-center mt-8" style={{ color: "#888" }}>
+                <p
+                  className="text-sm text-center mt-8"
+                  style={{ color: "#888" }}
+                >
                   {isSignup ? "Already have an account?" : "New to Dailys?"}{" "}
                   <Link
                     to={isSignup ? "/login" : "/signup"}
                     className="hover:opacity-80 transition-opacity"
-                    style={{ color: "white", textDecoration: "none", fontWeight: 500 }}
+                    style={{
+                      color: "white",
+                      textDecoration: "none",
+                      fontWeight: 500,
+                    }}
                   >
                     {isSignup ? "Sign in" : "Create account"}
                   </Link>
@@ -490,5 +861,5 @@ export default function Auth() {
         </div>
       </div>
     </div>
-  );
+  )
 }
