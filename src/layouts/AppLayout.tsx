@@ -346,30 +346,6 @@ export default function AppLayout() {
 
       {/* Main */}
       <div className="flex-1 min-w-0 min-h-0 flex flex-col overflow-hidden w-full max-w-[100vw]">
-        {/* DB setup banner */}
-        <AnimatePresence>
-          {!dbReady && !dbBannerDismissed && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
-              className="flex-shrink-0 flex items-center justify-between px-5 py-2.5 text-xs gap-4"
-              style={{ background: "rgba(212,168,83,0.08)", borderBottom: "1px solid rgba(212,168,83,0.18)", color: "rgba(212,168,83,0.9)" }}
-            >
-              <span className="font-mono-data">
-                Database not set up · Run <strong>supabase/migrations/001_setup.sql</strong> in your{" "}
-                <a href={SETUP_SQL_URL} target="_blank" rel="noreferrer" style={{ color: "rgba(212,168,83,1)", textDecoration: "underline" }}>
-                  Supabase SQL editor
-                </a>
-              </span>
-              <div className="flex items-center gap-3 flex-shrink-0">
-                <button onClick={copySql} className="hover:opacity-80 transition-opacity" style={{ background: "none", border: "none", cursor: "pointer", color: "inherit" }}>
-                  {sqlCopied ? "Copied!" : "Copy hint"}
-                </button>
-                <button onClick={() => setDbBannerDismissed(true)} className="opacity-50 hover:opacity-100 transition-opacity" style={{ background: "none", border: "none", cursor: "pointer", color: "inherit" }}>X</button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
         <AnimatePresence mode="wait" initial={false}>
           <motion.main
             key={location.pathname}
