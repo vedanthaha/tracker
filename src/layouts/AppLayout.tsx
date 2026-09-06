@@ -78,6 +78,17 @@ const NAV_ITEMS = [
     ),
   },
   {
+    to: "/dashboard/community",
+    label: "Community",
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+        <circle cx="5.5" cy="7.5" r="2.5" stroke="currentColor" strokeWidth="1.4" />
+        <circle cx="12.5" cy="7.5" r="2.5" stroke="currentColor" strokeWidth="1.4" />
+        <path d="M2 15c0-2.5 2-4.5 4.5-4.5h5c2.5 0 4.5 2 4.5 4.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+      </svg>
+    ),
+  },
+  {
     to: "/dashboard/settings",
     label: "Settings",
     icon: (
